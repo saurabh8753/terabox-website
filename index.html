@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeraBox Downloader — Fast & Free</title>
+  <meta name="description" content="Download and stream TeraBox videos instantly. No login required. Paste your link and get started." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ─────────────────────────────────────── */
+    :root {
+      --bg:        #0a0c12;
+      --surface:   #111520;
+      --surface2:  #181d2e;
+      --border:    #1e2540;
+      --accent:    #4f8ef7;
+      --accent2:   #7b5cfa;
+      --success:   #22d47a;
+      --danger:    #f75c5c;
+      --text:      #e8eaf0;
+      --muted:     #6b7294;
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
+
+    /* ── RESET ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+    input { font-family: inherit; outline: none; border: none; }
+
+    /* ── BACKGROUND GLOW ────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 500px;
+      background: radial-gradient(ellipse at center, rgba(79,142,247,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0;
+      background: rgba(10,12,18,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .nav-badge {
+      font-size: 11px; font-weight: 600;
+      background: rgba(79,142,247,0.15);
+      color: var(--accent);
+      padding: 3px 10px; border-radius: 20px;
+      border: 1px solid rgba(79,142,247,0.25);
+    }
+
+    /* ── HERO ───────────────────────────────────────── */
+    .hero {
+      max-width: 900px; margin: 0 auto;
+      padding: 80px 24px 48px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--accent);
+      background: rgba(79,142,247,0.08);
+      border: 1px solid rgba(79,142,247,0.2);
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 700; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 18px; color: var(--muted);
+      max-width: 500px; margin: 0 auto 40px;
+    }
+
+    /* ── INPUT BOX ─────────────────────────────────── */
+    .input-wrap {
+      position: relative;
+      max-width: 680px; margin: 0 auto;
+    }
+    /* animated gradient border — signature element */
+    .input-wrap::before {
+      content: '';
+      position: absolute; inset: -2px;
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+      background-size: 200% 100%;
+      animation: borderFlow 3s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 0;
+    }
+    .input-wrap:focus-within::before { opacity: 1; }
+    @keyframes borderFlow {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+    .input-inner {
+      position: relative; z-index: 1;
+      display: flex; align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .input-icon {
+      padding: 0 16px; color: var(--muted); font-size: 18px;
+      flex-shrink: 0;
+    }
+    #linkInput {
+      flex: 1; padding: 16px 8px;
+      background: transparent; color: var(--text);
+      font-size: 15px;
+    }
+    #linkInput::placeholder { color: var(--muted); }
+    .paste-btn {
+      padding: 8px 14px; margin: 8px;
+      background: var(--surface2);
+      color: var(--muted); font-size: 13px; font-weight: 500;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .paste-btn:hover { color: var(--text); background: var(--border); }
+    .fetch-btn {
+      padding: 12px 28px; margin: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s; flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+    }
+    .fetch-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(79,142,247,0.4); }
+    .fetch-btn:active { transform: translateY(0); }
+    .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ── FEATURES STRIP ─────────────────────────────── */
+    .features {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 10px 24px; margin-top: 20px;
+    }
+    .feature-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--muted);
+    }
+    .feature-item span { color: var(--success); }
+
+    /* ── RESULT SECTION ─────────────────────────────── */
+    #result {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative; z-index: 1;
+    }
+
+    /* Loading */
+    .loader {
+      text-align: center; padding: 60px;
+    }
+    .spinner {
+      width: 44px; height: 44px; margin: 0 auto 16px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader p { color: var(--muted); font-size: 14px; }
+
+    /* Error */
+    .error-box {
+      background: rgba(247,92,92,0.08);
+      border: 1px solid rgba(247,92,92,0.25);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .error-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .error-box h3 { font-size: 15px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
+    .error-box p { font-size: 14px; color: var(--muted); }
+
+    /* Card */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Video Player */
+    .player-wrap {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16/9;
+    }
+    #videoPlayer {
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .player-placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: var(--muted);
+      background: linear-gradient(135deg, #0d1220, #111826);
+    }
+    .play-icon-big {
+      width: 64px; height: 64px;
+      background: rgba(79,142,247,0.15);
+      border: 2px solid rgba(79,142,247,0.3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .play-icon-big:hover {
+      background: rgba(79,142,247,0.25);
+      transform: scale(1.05);
+    }
+    .thumb-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      filter: brightness(0.3);
+    }
+    .player-placeholder > * { position: relative; z-index: 1; }
+
+    /* File Info */
+    .file-info {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .file-meta h2 {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .file-tags {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 12px; font-weight: 500;
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .tag-size {
+      background: rgba(79,142,247,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(79,142,247,0.2);
+    }
+    .tag-type {
+      background: rgba(123,92,250,0.1);
+      color: var(--accent2);
+      border: 1px solid rgba(123,92,250,0.2);
+    }
+    .tag-time {
+      background: rgba(107,114,148,0.1);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    /* Action Buttons */
+    .actions {
+      padding: 20px 24px;
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 600;
+      transition: all 0.2s; cursor: pointer;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 3px 16px rgba(79,142,247,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(79,142,247,0.35); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+
+    /* Copy link section */
+    .copy-section {
+      padding: 0 24px 20px;
+      display: flex; gap: 8px;
+    }
+    .copy-input {
+      flex: 1; padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--muted); font-size: 13px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .copy-btn {
+      padding: 10px 18px;
+      background: var(--surface2);
+      color: var(--text); font-size: 13px; font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .copy-btn:hover { background: var(--border); }
+    .copy-btn.copied { color: var(--success); border-color: rgba(34,212,122,0.3); }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0; transition: all 0.3s; pointer-events: none;
+      z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: rgba(34,212,122,0.3); color: var(--success); }
+    #toast.error-t  { border-color: rgba(247,92,92,0.3); color: var(--danger); }
+
+    /* How to section */
+    .how-section {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative; z-index: 1;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 24px; text-align: center;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .step-card:hover { border-color: rgba(79,142,247,0.3); }
+    .step-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700;
+      color: var(--accent); margin-bottom: 12px;
+    }
+    .step-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .step-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center; color: var(--muted); font-size: 13px;
+      position: relative; z-index: 1;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .hero { padding: 48px 16px 32px; }
+      .hero p { font-size: 15px; }
+      .input-inner { flex-wrap: wrap; }
+      .paste-btn { display: none; }
+      .fetch-btn { margin: 0 8px 8px; width: calc(100% - 16px); }
+      #linkInput { padding: 14px 8px; }
+      .file-info { flex-direction: column; }
+      .actions { flex-direction: column; }
+      .btn { justify-content: center; }
+      .copy-section { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .input-wrap::before { animation: none; opacity: 0.5; }
+      .spinner { animation: none; }
+      .result-card { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-icon">▶</div>
+        TeraFetch
+      </div>
+      <div class="nav-badge">Free • No Login</div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span>⚡</span> Instant TeraBox Downloader
+    </div>
+    <h1>Stream & Download<br /><span>TeraBox Videos</span></h1>
+    <p>Paste any TeraBox share link. Watch instantly or download at full speed.</p>
+
+    <div class="input-wrap">
+      <div class="input-inner">
+        <div class="input-icon">🔗</div>
+        <input
+          type="url"
+          id="linkInput"
+          placeholder="https://terabox.com/s/..."
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <button class="paste-btn" onclick="pasteLink()">Paste</button>
+        <button class="fetch-btn" onclick="fetchLink()" id="fetchBtn">Fetch →</button>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature-item"><span>✓</span> No login needed</div>
+      <div class="feature-item"><span>✓</span> Fast streaming</div>
+      <div class="feature-item"><span>✓</span> Direct download</div>
+      <div class="feature-item"><span>✓</span> All TeraBox links</div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <div id="result"></div>
+
+  <!-- HOW TO USE -->
+  <section class="how-section" id="how">
+    <div class="section-title">How it works</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">STEP 01</div>
+        <h3>Copy the link</h3>
+        <p>Open your TeraBox share link and copy it from the browser or app.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 02</div>
+        <h3>Paste & Fetch</h3>
+        <p>Paste the link above and click Fetch. We'll extract the file info instantly.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 03</div>
+        <h3>Watch or Download</h3>
+        <p>Stream directly in the browser or download the file at full speed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>TeraFetch — Fast TeraBox video downloader. Not affiliated with TeraBox.</p>
+  </footer>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────────
+    const API_BASE = "https://terabox-api-3zp5.onrender.com";
+
+    // ── PASTE ────────────────────────────────────────────
+    async function pasteLink() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("linkInput").value = text;
+        document.getElementById("linkInput").focus();
+      } catch {
+        showToast("Paste manually using Ctrl+V", "error");
+      }
+    }
+
+    // ── ENTER KEY ────────────────────────────────────────
+    document.getElementById("linkInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") fetchLink();
+    });
+
+    // ── FETCH ────────────────────────────────────────────
+    async function fetchLink() {
+      const url = document.getElementById("linkInput").value.trim();
+      const btn = document.getElementById("fetchBtn");
+      const result = document.getElementById("result");
+
+      if (!url) {
+        showToast("Please paste a TeraBox link first", "error");
+        document.getElementById("linkInput").focus();
+        return;
+      }
+
+      if (!url.startsWith("http")) {
+        showToast("Invalid URL — must start with https://", "error");
+        return;
+      }
+
+      // Loading state
+      btn.disabled = true;
+      btn.textContent = "Fetching…";
+      result.innerHTML = `
+        <div class="loader">
+          <div class="spinner"></div>
+          <p>Fetching file info…</p>
+        </div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+
+        if (data.status !== "success") {
+          showError(data.error || data.message || "Could not fetch file. Check your link.");
+          return;
+        }
+
+        renderResult(data);
+      } catch (err) {
+        showError("Network error — make sure the API is running.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Fetch →";
+      }
+    }
+
+    // ── RENDER RESULT ────────────────────────────────────
+    function renderResult(data) {
+      const result = document.getElementById("result");
+      const isVideo = data.is_video;
+      const proxyStream = `${API_BASE}/download?url=${encodeURIComponent(data.url)}`;
+      const thumb = data.thumbs?.url3 || data.thumbs?.url2 || data.thumbs?.url1 || null;
+      const ext = (data.filename || "").split(".").pop().toUpperCase();
+
+      result.innerHTML = `
+        <div class="result-card">
+
+          ${isVideo ? `
+          <!-- VIDEO PLAYER -->
+          <div class="player-wrap">
+            ${thumb ? `<div class="thumb-bg" style="background-image:url('${thumb}')"></div>` : ""}
+            <div class="player-placeholder" id="placeholder">
+              <div class="play-icon-big" onclick="startPlay('${proxyStream}', '${escHtml(data.filename)}')">▶</div>
+              <p style="font-size:14px;">Click to play</p>
+              ${data.size ? `<p style="font-size:12px;opacity:0.5;">${data.size}</p>` : ""}
+            </div>
+            <video id="videoPlayer" controls style="display:none;" preload="metadata">
+              Your browser does not support video playback.
+            </video>
+          </div>
+          ` : `
+          <!-- FILE ICON -->
+          <div style="padding:32px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:8px;">📄</div>
+            <p style="color:var(--muted);font-size:14px;">File ready to download</p>
+          </div>
+          `}
+
+          <!-- FILE INFO -->
+          <div class="file-info">
+            <div class="file-meta">
+              <h2>${escHtml(data.filename || "Unknown file")}</h2>
+              <div class="file-tags">
+                ${data.size ? `<span class="tag tag-size">${data.size}</span>` : ""}
+                ${ext ? `<span class="tag tag-type">${ext}</span>` : ""}
+                <span class="tag tag-time">⚡ ${data.response_time}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="actions">
+            ${isVideo ? `
+            <button class="btn btn-primary" onclick="startPlay('${proxyStream}', '${escHtml(data.filename)}')">
+              ▶ &nbsp;Play Video
+            </button>
+            ` : ""}
+            <a class="btn btn-secondary" href="${proxyStream}&dl=1" download="${escHtml(data.filename)}">
+              ⬇ &nbsp;Download
+            </a>
+            <button class="btn btn-ghost" onclick="copyToClipboard('${proxyStream}')">
+              🔗 &nbsp;Copy Stream Link
+            </button>
+          </div>
+
+          <!-- COPY DIRECT LINK -->
+          <div class="copy-section">
+            <input class="copy-input" readonly value="${proxyStream}" id="streamInput" />
+            <button class="copy-btn" id="copyBtn" onclick="copyInput()">Copy</button>
+          </div>
+
+        </div>`;
+
+      result.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // ── PLAY VIDEO ───────────────────────────────────────
+    function startPlay(src, filename) {
+      const placeholder = document.getElementById("placeholder");
+      const player = document.getElementById("videoPlayer");
+      if (!player) return;
+
+      placeholder.style.display = "none";
+      player.style.display = "block";
+      player.src = src;
+      player.play().catch(() => {
+        showToast("Autoplay blocked — press play manually", "error");
+      });
+    }
+
+    // ── ERROR ────────────────────────────────────────────
+    function showError(msg) {
+      document.getElementById("result").innerHTML = `
+        <div class="error-box">
+          <div class="error-icon">⚠️</div>
+          <div>
+            <h3>Could not fetch file</h3>
+            <p>${escHtml(msg)}</p>
+          </div>
+        </div>`;
+    }
+
+    // ── COPY ─────────────────────────────────────────────
+    function copyInput() {
+      const val = document.getElementById("streamInput")?.value;
+      if (!val) return;
+      copyToClipboard(val);
+      const btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied!";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Link copied!", "success");
+      } catch {
+        showToast("Could not copy — try manually", "error");
+      }
+    }
+
+    // ── TOAST ────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = "") {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = "show" + (type === "success" ? " success" : type === "error" ? " error-t" : "");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.className = ""; }, 3000);
+    }
+
+    // ── UTILS ────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
+</body>
+</html>
