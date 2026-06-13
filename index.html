@@ -259,22 +259,15 @@ body::before{
 
 .actions{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
 
-.copy-row{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:13px 15px;
-  display:flex;gap:8px;flex-wrap:wrap;
+/* domain-convert toast */
+.convert-toast{
+  display:none;
+  align-items:center;gap:7px;
+  font-size:.78rem;color:var(--cyan);
+  margin-top:7px;
+  animation:fadeUp .3s ease;
 }
-.copy-input{
-  flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:8px 11px;color:var(--muted);
-  font-size:.77rem;font-family:monospace;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;outline:none;
-}
-.btn-copy{
-  padding:8px 13px;font-size:.78rem;
-  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
-}
-.btn-copy:hover{color:var(--text)}
+.convert-toast svg{flex-shrink:0}
 
 #ztera-ad{margin-top:14px}
 #delayedAdContainer{display:none;margin-top:14px}
@@ -322,11 +315,11 @@ footer a{color:var(--violet-l);text-decoration:none}
   </div>
 
   <div class="input-card">
-    <span class="input-label">TeraBox Share Link</span>
+    <span class="input-label">Paste TeraBox Link 👇</span>
     <div class="input-row">
       <input
         class="url-input" id="userInput" type="url"
-        placeholder="https://terabox.com/s/…"
+        placeholder="Enter Terabox link here…"
         autocomplete="off" spellcheck="false"
       />
       <button class="btn btn-paste" id="clipBtn" onclick="toggleClipboard()">📋 Paste</button>
@@ -389,11 +382,6 @@ footer a{color:var(--violet-l);text-decoration:none}
       <a class="btn btn-download" id="downloadBtn" href="#" target="_blank" rel="noopener">⬇ Download</a>
     </div>
 
-    <div class="copy-row">
-      <input class="copy-input" id="streamLinkInput" readonly value="" onclick="this.select()"/>
-      <button class="btn btn-copy" onclick="copyStreamLink()">Copy URL</button>
-    </div>
-
     <div id="delayedAdContainer">
       <div class="ad-grid">
         <script async data-cfasync="false" src="https://yawncollaremotion.com/e3944d131a656c3846f20deba4bea8dd/invoke.js"></script>
@@ -423,7 +411,44 @@ const API="https://render-proxy.mazashwaas.workers.dev/api/terabox?url=";
 const Q_LABELS={'360p':'360p','480p':'480p','720p':'720p HD'};
 let hlsInstance=null;
 
+/* All known TeraBox alternate domains → terabox.com */
+const TERA_DOMAINS=[
+  '1024terabox.com','teraboxapp.com','nephobox.com','mirrobox.com',
+  '4funbox.co','4funbox.com','momerybox.com','tibibox.com',
+  'terashare.com','terabox.fun','www.terabox.com'
+];
+
 function cleanLink(s){return s.split(" ")[0].trim();}
+
+function convertDomain(url){
+  try{
+    const u=new URL(url.startsWith('http')?url:'https://'+url);
+    const matched=TERA_DOMAINS.find(d=>u.hostname===d||u.hostname==='www.'+d);
+    if(matched){
+      u.hostname='www.terabox.com';
+      return{converted:true,original:url,result:u.toString()};
+    }
+  }catch(e){}
+  return{converted:false,result:url};
+}
+
+function showConvertToast(original,converted){
+  let t=document.getElementById('convertToast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='convertToast';t.className='convert-toast';
+    t.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg><span id="convertMsg"></span>`;
+    document.getElementById('errorBox').after(t);
+  }
+  document.getElementById('convertMsg').textContent=`Domain auto-converted → terabox.com`;
+  t.style.display='flex';
+}
+
+function hideConvertToast(){
+  const t=document.getElementById('convertToast');
+  if(t)t.style.display='none';
+}
+
 function isValid(s){return /terabox|terashare|1024tera|nephobox|mirrobox|4funbox|momerybox|tibibox|teraboxapp/i.test(s);}
 function formatBytes(b){if(!b)return'—';const u=['B','KB','MB','GB'];let i=0,v=b;while(v>=1024&&i<u.length-1){v/=1024;i++;}return v.toFixed(2)+' '+u[i];}
 
@@ -457,11 +482,20 @@ async function fetchData(){
   if(!isValid(link)){showError('Please enter a valid TeraBox link.');return;}
 
   hideError();
+  hideConvertToast();
   document.getElementById('result').style.display='none';
   setLoading(true);
 
+  /* Auto domain convert */
+  const cvt=convertDomain(link);
+  const finalLink=cvt.result;
+  if(cvt.converted){
+    document.getElementById('userInput').value=finalLink;
+    showConvertToast(link,finalLink);
+  }
+
   try{
-    const res=await fetch(API+encodeURIComponent(link));
+    const res=await fetch(API+encodeURIComponent(finalLink));
     const json=await res.json();
     setLoading(false);
 
@@ -489,7 +523,6 @@ function renderShapeA(item){
   if(item.thumbnail){document.getElementById('thumbImg').src=item.thumbnail;document.getElementById('thumbOverlay').classList.remove('hidden');}
   document.getElementById('downloadBtn').href=item.normal_dlink||'#';
   document.getElementById('streamBtn').href=item.stream_url||item.normal_dlink||'#';
-  document.getElementById('streamLinkInput').value=item.stream_url||item.normal_dlink||'';
   buildQualityPills(item);
   showResult();
 }
@@ -503,7 +536,6 @@ function renderShapeB(item){
   const dlUrl=item.download_url||streamUrl;
   document.getElementById('downloadBtn').href=dlUrl;
   document.getElementById('streamBtn').href=streamUrl;
-  document.getElementById('streamLinkInput').value=streamUrl;
   const c=document.getElementById('qualityPills');c.innerHTML='';
   const p=document.createElement('button');p.className='q-pill active';p.textContent=item.extension||'Original';
   p.onclick=()=>loadStream(streamUrl,'auto');c.appendChild(p);
@@ -552,13 +584,6 @@ function loadStream(url,type){
 function startPlay(){
   document.getElementById('thumbOverlay').classList.add('hidden');
   document.getElementById('player').play().catch(()=>{});
-}
-
-function copyStreamLink(){
-  const i=document.getElementById('streamLinkInput');i.select();
-  try{document.execCommand('copy');}catch(e){}
-  const b=i.nextElementSibling;const o=b.textContent;
-  b.textContent='Copied!';setTimeout(()=>{b.textContent=o;},2000);
 }
 
 function showResult(){
