@@ -1,897 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TeraPlay — TeraBox Video Player</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg:        #0A0E1A;
-    --surface:   #111827;
-    --surface2:  #1A2235;
-    --border:    rgba(255,255,255,0.07);
-    --violet:    #7C3AED;
-    --violet-l:  #A78BFA;
-    --cyan:      #06B6D4;
-    --text:      #F8FAFC;
-    --muted:     #94A3B8;
-    --danger:    #EF4444;
-    --success:   #10B981;
-    --radius:    14px;
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  /* ── GRID NOISE BACKGROUND ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      radial-gradient(ellipse 60% 50% at 50% -10%, rgba(124,58,237,.25) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 30% at 90% 60%, rgba(6,182,212,.12) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── LAYOUT ── */
-  .container {
-    position: relative; z-index: 1;
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 0 20px 80px;
-  }
-
-  /* ── HEADER ── */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 28px 0 48px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .logo {
-    display: flex; align-items: center; gap: 10px;
-    text-decoration: none;
-  }
-
-  .logo-mark {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--violet), var(--cyan));
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-
-  .logo-text {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 1.2rem;
-    letter-spacing: -0.02em;
-  }
-
-  .logo-text span { color: var(--violet-l); }
-
-  .badge {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    background: rgba(124,58,237,.15);
-    border: 1px solid rgba(124,58,237,.3);
-    border-radius: 99px;
-    color: var(--violet-l);
-  }
-
-  /* ── HERO ── */
-  .hero {
-    text-align: center;
-    margin-bottom: 44px;
-  }
-
-  .hero h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-    margin-bottom: 12px;
-  }
-
-  .hero h1 em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--violet-l), var(--cyan));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero p {
-    color: var(--muted);
-    font-size: 1rem;
-    max-width: 460px;
-    margin: 0 auto;
-  }
-
-  /* ── INPUT CARD ── */
-  .input-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 32px;
-  }
-
-  .input-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-    display: block;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .url-input {
-    flex: 1;
-    min-width: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px 16px;
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color .2s;
-  }
-
-  .url-input::placeholder { color: var(--muted); }
-
-  .url-input:focus {
-    border-color: rgba(124,58,237,.5);
-    box-shadow: 0 0 0 3px rgba(124,58,237,.12);
-  }
-
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 13px 22px;
-    border-radius: 10px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: opacity .15s, transform .1s;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .btn:active { transform: scale(.97); }
-  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--violet), #5B21B6);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(124,58,237,.35);
-  }
-
-  .btn-primary:hover:not(:disabled) { opacity: .9; }
-
-  .btn-outline {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-
-  .btn-outline:hover { background: var(--surface2); }
-
-  .btn-dl {
-    background: linear-gradient(135deg, var(--cyan), #0891B2);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(6,182,212,.25);
-  }
-
-  /* ── LOADING ── */
-  .loading-wrap {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 20px 0 8px;
-    color: var(--muted);
-    font-size: .88rem;
-  }
-
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(124,58,237,.3);
-    border-top-color: var(--violet);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── ERROR ── */
-  .error-box {
-    display: none;
-    background: rgba(239,68,68,.08);
-    border: 1px solid rgba(239,68,68,.25);
-    border-radius: 10px;
-    padding: 14px 16px;
-    color: #FCA5A5;
-    font-size: .88rem;
-    margin-top: 14px;
-    display: none;
-    align-items: center;
-    gap: 10px;
-  }
-
-  /* ── RESULT SECTION ── */
-  #result { display: none; }
-
-  /* ── FILE META BAR ── */
-  .meta-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .file-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
-
-  .file-icon {
-    width: 40px; height: 40px; flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(124,58,237,.25), rgba(6,182,212,.15));
-    border-radius: 10px;
-    border: 1px solid rgba(124,58,237,.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-
-  .file-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: .95rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 360px;
-  }
-
-  .file-size {
-    font-size: .78rem;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .duration-pill {
-    flex-shrink: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .75rem;
-    font-weight: 600;
-    padding: 4px 10px;
-    background: rgba(6,182,212,.12);
-    border: 1px solid rgba(6,182,212,.25);
-    border-radius: 99px;
-    color: var(--cyan);
-  }
-
-  /* ── VIDEO PLAYER ── */
-  .player-wrap {
-    position: relative;
-    background: #000;
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-    box-shadow: 0 24px 60px rgba(0,0,0,.6);
-  }
-
-  .player-wrap video {
-    width: 100%;
-    display: block;
-    max-height: 480px;
-    background: #000;
-  }
-
-  /* Thumbnail overlay */
-  .thumb-overlay {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,.4);
-    cursor: pointer;
-    transition: opacity .2s;
-  }
-
-  .thumb-overlay img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-
-  .play-btn-big {
-    position: relative; z-index: 1;
-    width: 68px; height: 68px;
-    background: rgba(124,58,237,.9);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    box-shadow: 0 8px 32px rgba(124,58,237,.5);
-    transition: transform .15s, box-shadow .15s;
-  }
-
-  .thumb-overlay:hover .play-btn-big {
-    transform: scale(1.08);
-    box-shadow: 0 12px 40px rgba(124,58,237,.7);
-  }
-
-  .thumb-overlay.hidden { display: none; }
-
-  /* ── QUALITY SWITCHER ── */
-  .controls-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .quality-label {
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: 6px;
-  }
-
-  .quality-pills {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .q-pill {
-    padding: 6px 14px;
-    border-radius: 99px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .8rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--muted);
-    transition: all .15s;
-  }
-
-  .q-pill:hover { border-color: rgba(124,58,237,.4); color: var(--violet-l); }
-
-  .q-pill.active {
-    background: linear-gradient(135deg, var(--violet), #5B21B6);
-    border-color: transparent;
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(124,58,237,.4);
-  }
-
-  /* ── STREAM INFO ── */
-  .stream-type {
-    font-size: .78rem;
-    color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
-  }
-
-  .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 6px var(--success);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .4; }
-  }
-
-  /* ── DOWNLOAD SECTION ── */
-  .dl-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-  }
-
-  .dl-section h3 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--muted);
-    margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  .dl-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .dl-info {
-    font-size: .88rem;
-    color: var(--muted);
-  }
-
-  .dl-info strong {
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  /* ── COPY LINK ── */
-  .copy-row {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-    display: flex; gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .copy-input {
-    flex: 1; min-width: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 14px;
-    color: var(--muted);
-    font-size: .8rem;
-    font-family: monospace;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    outline: none;
-  }
-
-  .btn-copy {
-    padding: 9px 16px;
-    font-size: .82rem;
-  }
-
-  /* ── FEATURES STRIP ── */
-  .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-top: 40px;
-    margin-bottom: 10px;
-  }
-
-  .feat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .feat-icon { font-size: 22px; margin-bottom: 8px; }
-
-  .feat-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: .85rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .feat-desc { font-size: .75rem; color: var(--muted); }
-
-  /* ── FOOTER ── */
-  footer {
-    text-align: center;
-    padding-top: 40px;
-    color: var(--muted);
-    font-size: .78rem;
-    border-top: 1px solid var(--border);
-    margin-top: 40px;
-  }
-
-  footer a { color: var(--violet-l); text-decoration: none; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 500px) {
-    header { padding: 20px 0 32px; }
-    .hero h1 { font-size: 1.8rem; }
-    .btn { padding: 12px 16px; font-size: .85rem; }
-    .file-name { max-width: 180px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium TeraBox Video Player & Downloader</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .plyr { border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+    </style>
 </head>
-<body>
-<div class="container">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-  <!-- Header -->
-  <header>
-    <a class="logo" href="#">
-      <div class="logo-mark">▶</div>
-      <div class="logo-text">Tera<span>Play</span></div>
-    </a>
-    <span class="badge">Free Streaming</span>
-  </header>
-
-  <!-- Hero -->
-  <div class="hero">
-    <h1>Stream & Download<br/><em>TeraBox Videos</em></h1>
-    <p>Paste any TeraBox share link to instantly stream in HD or download — no app required.</p>
-  </div>
-
-  <!-- Input Card -->
-  <div class="input-card">
-    <span class="input-label">TeraBox Share Link</span>
-    <div class="input-row">
-      <input
-        class="url-input"
-        id="urlInput"
-        type="url"
-        placeholder="https://terabox.com/s/…  or  https://1024terabox.com/s/…"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button class="btn btn-primary" id="loadBtn" onclick="loadVideo()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Load Video
-      </button>
-    </div>
-    <div class="loading-wrap" id="loading">
-      <div class="spinner"></div>
-      <span>Fetching video info…</span>
-    </div>
-    <div class="error-box" id="errorBox" style="display:none">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="errorMsg">Something went wrong.</span>
-    </div>
-  </div>
-
-  <!-- Result Section -->
-  <div id="result">
-
-    <!-- Meta Bar -->
-    <div class="meta-bar">
-      <div class="file-info">
-        <div class="file-icon">🎬</div>
-        <div>
-          <div class="file-name" id="fileName">video.mp4</div>
-          <div class="file-size" id="fileSize">—</div>
+    <header class="bg-slate-800/50 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-play fa-lg"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">TeraStream</span>
+            </div>
+            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full text-slate-400 border border-slate-600">v1.0 Pro</span>
         </div>
-      </div>
-      <div class="duration-pill" id="durationPill">0:00</div>
-    </div>
+    </header>
 
-    <!-- Video Player -->
-    <div class="player-wrap">
-      <video id="videoEl" controls playsinline preload="metadata"></video>
-      <div class="thumb-overlay" id="thumbOverlay" onclick="startPlay()">
-        <img id="thumbImg" src="" alt="thumbnail"/>
-        <div class="play-btn-big">▶</div>
-      </div>
-    </div>
-
-    <!-- Controls Row -->
-    <div class="controls-row">
-      <div>
-        <div class="quality-label">Quality</div>
-        <div class="quality-pills" id="qualityPills"></div>
-      </div>
-      <div class="stream-type">
-        <div class="dot"></div>
-        <span id="streamTypeLabel">HLS Stream</span>
-      </div>
-    </div>
-
-    <!-- Download Section -->
-    <div class="dl-section">
-      <h3>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download File
-      </h3>
-      <div class="dl-row">
-        <div class="dl-info">
-          <strong id="dlFileName">video.mp4</strong>
-          <span id="dlFileSize">—</span>
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+        <div class="bg-slate-800 border border-slate-700/60 rounded-2xl p-6 shadow-xl mb-8">
+            <h1 class="text-2xl font-bold mb-2 text-center md:text-left">TeraBox Video Player & Downloader</h1>
+            <p class="text-sm text-slate-400 mb-6 text-center md:text-left">Paste your TeraBox link below to stream instantly in high quality or download with one click.</p>
+            
+            <form id="searchForm" class="flex flex-col md:flex-row gap-3">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <input type="url" id="teraUrl" required
+                        placeholder="https://terabox.com/s/..." 
+                        class="w-full pl-10 pr-4 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-slate-200 placeholder-slate-500">
+                </div>
+                <button type="submit" id="btnSubmit" class="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium px-8 py-3.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer whitespace-nowrap">
+                    <span>Fetch Video</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
         </div>
-        <a class="btn btn-dl" id="dlBtn" href="#" target="_blank" rel="noopener">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </a>
-      </div>
-      <div class="copy-row">
-        <input class="copy-input" id="streamLinkInput" readonly value="" onclick="this.select()"/>
-        <button class="btn btn-outline btn-copy" onclick="copyStreamLink()">Copy Stream URL</button>
-      </div>
-    </div>
 
-  </div><!-- /result -->
+        <div id="loader" class="hidden flex-col items-center justify-center py-12 space-y-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500/20 border-t-blue-500"></div>
+            <p class="text-slate-400 text-sm animate-pulse">Extracting premium stream links...</p>
+        </div>
 
-  <!-- Features Strip -->
-  <div class="features">
-    <div class="feat">
-      <div class="feat-icon">⚡</div>
-      <div class="feat-title">Fast HLS Stream</div>
-      <div class="feat-desc">360p, 480p & 720p adaptive quality</div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📱</div>
-      <div class="feat-title">Mobile Ready</div>
-      <div class="feat-desc">Works on iOS Safari & Android</div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">⬇️</div>
-      <div class="feat-title">Direct Download</div>
-      <div class="feat-desc">Save to device in original quality</div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🔒</div>
-      <div class="feat-title">No Login Needed</div>
-      <div class="feat-desc">Works with any public share link</div>
-    </div>
-  </div>
+        <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm mb-6 flex items-center space-x-3">
+            <i class="fa-solid fa-circle-exclamation text-lg"></i>
+            <span id="errorText">Failed to fetch data. Please check your link.</span>
+        </div>
 
-  <!-- Footer -->
-  <footer>
-    <p>TeraPlay — Fast TeraBox streaming. For personal use only. &nbsp;·&nbsp; Not affiliated with TeraBox.</p>
-  </footer>
+        <div id="resultContainer" class="hidden space-y-6">
+            
+            <div class="bg-slate-800 border border-slate-700/60 rounded-2xl p-4 shadow-xl">
+                <div class="mb-4">
+                    <h2 id="videoTitle" class="text-lg font-semibold text-slate-200 line-clamp-2">Video Title</h2>
+                    <p id="videoSize" class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-database mr-1"></i> Size: --</p>
+                </div>
 
-</div><!-- /container -->
+                <div class="relative">
+                    <video id="player" playsinline controls class="w-full"></video>
+                </div>
+            </div>
 
-<script>
-const API_BASE = 'https://render-proxy.mazashwaas.workers.dev/api/terabox';
+            <div class="bg-slate-800 border border-slate-700/60 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-md font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center">
+                    <i class="fa-solid fa-download mr-2 text-blue-500"></i> Download Options
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <a id="btnDownload" href="#" target="_blank" class="flex items-center justify-between p-4 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/20 rounded-xl transition group">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                                <i class="fa-solid fa-bolt text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-emerald-400 text-sm">Direct High-Speed Download</p>
+                                <p class="text-xs text-slate-400">Best for external managers (IDM/ADM)</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-emerald-400 transition"></i>
+                    </a>
 
-let currentData = null;
-let hlsInstance = null;
+                    <a id="btnFastStream" href="#" target="_blank" class="flex items-center justify-between p-4 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl transition group">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-lg">
+                                <i class="fa-solid fa-circle-play text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-indigo-400 text-sm">Open in External Player</p>
+                                <p class="text-xs text-slate-400">Play in VLC / MX Player (720p)</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-indigo-400 transition"></i>
+                    </a>
+                </div>
 
-// Quality label map
-const Q_LABELS = { '360p': '360p', '480p': '480p', '720p': '720p HD' };
+                <div class="mt-6 pt-6 border-t border-slate-700/50">
+                    <p class="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Stream Quality (Internal Player)</p>
+                    <div id="qualityContainer" class="flex flex-wrap gap-2">
+                        </div>
+                </div>
 
-function normalizeUrl(raw) {
-  raw = raw.trim();
-  // Support various TeraBox domains
-  const domains = [
-    'terabox.com', '1024terabox.com', 'teraboxapp.com',
-    'www.terabox.com', 'www.1024terabox.com',
-    'terabox.fun', 'mirrobox.com', 'nephobox.com',
-    '4funbox.co', 'momerybox.com', 'tibibox.com'
-  ];
-  try {
-    const u = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
-    if (domains.some(d => u.hostname === d || u.hostname.endsWith('.' + d))) return raw;
-  } catch(e) {}
-  return raw;
-}
+            </div>
+        </div>
+    </main>
 
-function showError(msg) {
-  const box = document.getElementById('errorBox');
-  document.getElementById('errorMsg').textContent = msg;
-  box.style.display = 'flex';
-}
+    <footer class="bg-slate-950 text-slate-500 text-xs py-6 text-center border-t border-slate-800/60">
+        <p>&copy; 2026 TeraStream Premium. All rights reserved.</p>
+    </footer>
 
-function hideError() {
-  document.getElementById('errorBox').style.display = 'none';
-}
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.js"></script>
+    
+    <script>
+        // Initialize Plyr Player
+        const player = new Plyr('#player', {
+            controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+            ratio: '16:9'
+        });
 
-function setLoading(v) {
-  const el = document.getElementById('loading');
-  el.style.display = v ? 'flex' : 'none';
-  document.getElementById('loadBtn').disabled = v;
-}
+        const form = document.getElementById('searchForm');
+        const loader = document.getElementById('loader');
+        const errorDiv = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const resultContainer = document.getElementById('resultContainer');
 
-async function loadVideo() {
-  const raw = document.getElementById('urlInput').value;
-  if (!raw.trim()) { showError('Please enter a TeraBox share link.'); return; }
+        let activeStreams = {}; 
 
-  hideError();
-  document.getElementById('result').style.display = 'none';
-  setLoading(true);
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputUrl = document.getElementById('teraUrl').value.trim();
+            
+            // Reset Views
+            errorDiv.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            loader.classList.remove('hidden');
 
-  const url = normalizeUrl(raw);
+            // Render free APIs might go to sleep. Using AllOrigins CORS proxy for Blogspot support
+            const targetApi = `https://render-proxy.mazashwaas.workers.dev/api/terabox?url=${encodeURIComponent(inputUrl)}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetApi)}`;
 
-  try {
-    const res = await fetch(`${API_BASE}?url=${encodeURIComponent(url)}`);
-    const json = await res.json();
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("Proxy response failed");
+                
+                const proxyData = await response.json();
+                const data = JSON.parse(proxyData.contents);
 
-    if (!json.success || !json.data || !json.data.list || !json.data.list.length) {
-      throw new Error(json.error || json.message || 'Could not fetch video info. Check the link and try again.');
-    }
+                if (data.success && data.data && data.data.list && data.data.list.length > 0) {
+                    const videoData = data.data.list[0];
+                    renderVideoData(videoData);
+                } else {
+                    showError("Invalid link or data structure returned. If Render is waking up, please hit fetch again.");
+                }
+            } catch (err) {
+                console.error(err);
+                showError("Server is waking up or connection timed out. Please try clicking 'Fetch Video' again in a few seconds.");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
 
-    currentData = json.data.list[0];
-    renderResult(currentData);
-  } catch (err) {
-    showError(err.message || 'Network error. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-}
+        function renderVideoData(video) {
+            // Update Title and Info
+            document.getElementById('videoTitle').innerText = video.name || "TeraBox_Video.mp4";
+            document.getElementById('videoSize').innerHTML = `<i class="fa-solid fa-database mr-1"></i> Size: ${video.size_formatted || 'Unknown'}`;
 
-function renderResult(item) {
-  // Meta
-  document.getElementById('fileName').textContent = item.name || 'video.mp4';
-  document.getElementById('dlFileName').textContent = item.name || 'video.mp4';
-  document.getElementById('fileSize').textContent = item.size_formatted || formatBytes(item.size);
-  document.getElementById('dlFileSize').textContent = item.size_formatted || formatBytes(item.size);
-  document.getElementById('durationPill').textContent = item.duration || '';
+            // Main Direct Download link
+            document.getElementById('btnDownload').href = video.normal_dlink || "#";
+            
+            // Qualities and Default Streams
+            activeStreams = video.fast_stream_url || {};
+            let defaultStreamUrl = activeStreams['720p'] || activeStreams['480p'] || activeStreams['360p'] || video.stream_url;
+            
+            document.getElementById('btnFastStream').href = defaultStreamUrl || "#";
 
-  // Thumbnail
-  if (item.thumbnail) {
-    document.getElementById('thumbImg').src = item.thumbnail;
-    document.getElementById('thumbOverlay').classList.remove('hidden');
-  } else {
-    document.getElementById('thumbOverlay').classList.add('hidden');
-  }
+            // Push Source to Player
+            player.source = {
+                type: 'video',
+                title: video.name,
+                sources: [{ src: defaultStreamUrl, type: 'video/mp4' }],
+                poster: video.thumbnail || ''
+            };
 
-  // Download link
-  if (item.normal_dlink) {
-    document.getElementById('dlBtn').href = item.normal_dlink;
-    document.getElementById('streamLinkInput').value = item.stream_url || item.normal_dlink || '';
-  }
+            // Build Dynamic Quality Buttons
+            const qContainer = document.getElementById('qualityContainer');
+            qContainer.innerHTML = ''; 
 
-  // Quality pills
-  buildQualityPills(item);
+            const qualities = Object.keys(activeStreams);
+            
+            if(qualities.length === 0 && video.stream_url) {
+                // Fallback button if fast stream objects are empty
+                createQualityButton("Standard", video.stream_url, true, qContainer);
+            } else {
+                qualities.forEach(quality => {
+                    const isSelected = activeStreams[quality] === defaultStreamUrl;
+                    createQualityButton(quality, activeStreams[quality], isSelected, qContainer);
+                });
+            }
 
-  // Show result
-  document.getElementById('result').style.display = 'block';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+            resultContainer.classList.remove('hidden');
+        }
 
-function buildQualityPills(item) {
-  const container = document.getElementById('qualityPills');
-  container.innerHTML = '';
+        function createQualityButton(label, url, isSelected, container) {
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = `cursor-pointer px-4 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 ${
+                isSelected 
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 active-q' 
+                : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+            }`;
+            btn.innerHTML = `<i class="fa-solid fa-film"></i> <span>${label}</span>`;
+            
+            btn.onclick = () => {
+                document.querySelectorAll('#qualityContainer button').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20', 'active-q');
+                    b.classList.add('bg-slate-700', 'text-slate-300');
+                });
+                btn.classList.remove('bg-slate-700', 'text-slate-300');
+                btn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20', 'active-q');
+                
+                switchQuality(url);
+            };
 
-  const fast = item.fast_stream_url || {};
-  const qualities = [];
+            container.appendChild(btn);
+        }
 
-  // Add HLS fast streams
-  Object.entries(fast).forEach(([q, url]) => {
-    qualities.push({ label: Q_LABELS[q] || q, url, type: 'hls', key: q });
-  });
+        function switchQuality(streamUrl) {
+            const currentTime = player.currentTime;
+            const isPlaying = player.playing;
 
-  // Sort: 720p first
-  qualities.sort((a,b) => {
-    const order = {'720p':0,'480p':1,'360p':2};
-    return (order[a.key]??9) - (order[b.key]??9);
-  });
+            player.source = {
+                type: 'video',
+                sources: [{ src: streamUrl, type: 'video/mp4' }]
+            };
 
-  // Add normal stream fallback
-  if (item.stream_url) {
-    qualities.push({ label: 'Original', url: item.stream_url, type: 'mp4', key: 'orig' });
-  }
+            player.once('ready', () => {
+                player.currentTime = currentTime;
+                if (isPlaying) player.play();
+            });
+        }
 
-  // Default to best quality or item.quality
-  const defaultKey = item.quality || (qualities[0] && qualities[0].key);
-
-  qualities.forEach(q => {
-    const pill = document.createElement('button');
-    pill.className = 'q-pill' + (q.key === defaultKey ? ' active' : '');
-    pill.textContent = q.label;
-    pill.onclick = () => {
-      document.querySelectorAll('.q-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      loadStream(q.url, q.type);
-    };
-    container.appendChild(pill);
-  });
-
-  // Auto-load default
-  const def = qualities.find(q => q.key === defaultKey) || qualities[0];
-  if (def) {
-    loadStream(def.url, def.type);
-  }
-}
-
-function loadStream(url, type) {
-  const video = document.getElementById('videoEl');
-  const label = document.getElementById('streamTypeLabel');
-
-  // Destroy existing HLS
-  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-
-  video.src = '';
-  // Keep thumbnail until play
-  document.getElementById('thumbOverlay').classList.remove('hidden');
-
-  if (type === 'hls' && url.includes('.m3u8')) {
-    if (Hls.isSupported()) {
-      hlsInstance = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false,
-        backBufferLength: 30,
-      });
-      hlsInstance.loadSource(url);
-      hlsInstance.attachMedia(video);
-      label.textContent = 'HLS Adaptive Stream';
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // iOS Safari native HLS
-      video.src = url;
-      label.textContent = 'Native HLS (iOS)';
-    } else {
-      // Fallback to direct stream
-      video.src = currentData.stream_url || url;
-      label.textContent = 'Direct Stream';
-    }
-  } else {
-    video.src = url;
-    label.textContent = 'Direct MP4 Stream';
-  }
-}
-
-function startPlay() {
-  const video = document.getElementById('videoEl');
-  document.getElementById('thumbOverlay').classList.add('hidden');
-  video.play().catch(() => {});
-}
-
-function copyStreamLink() {
-  const input = document.getElementById('streamLinkInput');
-  input.select();
-  try { document.execCommand('copy'); } catch(e) {}
-  const btn = input.nextElementSibling;
-  const orig = btn.textContent;
-  btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = orig; }, 2000);
-}
-
-function formatBytes(b) {
-  if (!b) return '—';
-  const units = ['B','KB','MB','GB'];
-  let i = 0; let v = b;
-  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
-  return v.toFixed(2) + ' ' + units[i];
-}
-
-// Enter key support
-document.getElementById('urlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') loadVideo();
-});
-
-// Load from URL param on page open (e.g. ?url=…)
-(function() {
-  const params = new URLSearchParams(location.search);
-  const u = params.get('url');
-  if (u) {
-    document.getElementById('urlInput').value = u;
-    loadVideo();
-  }
-})();
-</script>
+        function showError(msg) {
+            errorText.innerText = msg;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
