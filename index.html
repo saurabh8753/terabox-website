@@ -1,721 +1,897 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TeraBox Downloader — Fast & Free</title>
-  <meta name="description" content="Download and stream TeraBox videos instantly. No login required. Paste your link and get started." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
-  <style>
-    /* ── TOKENS ─────────────────────────────────────── */
-    :root {
-      --bg:        #0a0c12;
-      --surface:   #111520;
-      --surface2:  #181d2e;
-      --border:    #1e2540;
-      --accent:    #4f8ef7;
-      --accent2:   #7b5cfa;
-      --success:   #22d47a;
-      --danger:    #f75c5c;
-      --text:      #e8eaf0;
-      --muted:     #6b7294;
-      --radius:    14px;
-      --radius-sm: 8px;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TeraPlay — TeraBox Video Player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── RESET ──────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    a { color: inherit; text-decoration: none; }
-    button { cursor: pointer; border: none; outline: none; font-family: inherit; }
-    input { font-family: inherit; outline: none; border: none; }
+  :root {
+    --bg:        #0A0E1A;
+    --surface:   #111827;
+    --surface2:  #1A2235;
+    --border:    rgba(255,255,255,0.07);
+    --violet:    #7C3AED;
+    --violet-l:  #A78BFA;
+    --cyan:      #06B6D4;
+    --text:      #F8FAFC;
+    --muted:     #94A3B8;
+    --danger:    #EF4444;
+    --success:   #10B981;
+    --radius:    14px;
+  }
 
-    /* ── BACKGROUND GLOW ────────────────────────────── */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -200px; left: 50%;
-      transform: translateX(-50%);
-      width: 800px; height: 500px;
-      background: radial-gradient(ellipse at center, rgba(79,142,247,0.08) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
+  html { scroll-behavior: smooth; }
 
-    /* ── NAV ────────────────────────────────────────── */
-    nav {
-      position: sticky; top: 0;
-      background: rgba(10,12,18,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      z-index: 100;
-      padding: 0 24px;
-    }
-    .nav-inner {
-      max-width: 900px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 60px;
-    }
-    .logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700; font-size: 20px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .logo-icon {
-      width: 30px; height: 30px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-    }
-    .nav-badge {
-      font-size: 11px; font-weight: 600;
-      background: rgba(79,142,247,0.15);
-      color: var(--accent);
-      padding: 3px 10px; border-radius: 20px;
-      border: 1px solid rgba(79,142,247,0.25);
-    }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
 
-    /* ── HERO ───────────────────────────────────────── */
-    .hero {
-      max-width: 900px; margin: 0 auto;
-      padding: 80px 24px 48px;
-      text-align: center;
-      position: relative; z-index: 1;
-    }
-    .hero-eyebrow {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--accent);
-      background: rgba(79,142,247,0.08);
-      border: 1px solid rgba(79,142,247,0.2);
-      padding: 5px 14px; border-radius: 20px;
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(32px, 6vw, 56px);
-      font-weight: 700; line-height: 1.1;
-      margin-bottom: 16px;
-    }
-    .hero h1 span {
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero p {
-      font-size: 18px; color: var(--muted);
-      max-width: 500px; margin: 0 auto 40px;
-    }
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 60% 50% at 50% -10%, rgba(124,58,237,.25) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 90% 60%, rgba(6,182,212,.12) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    /* ── INPUT BOX ─────────────────────────────────── */
-    .input-wrap {
-      position: relative;
-      max-width: 680px; margin: 0 auto;
-    }
-    /* animated gradient border — signature element */
-    .input-wrap::before {
-      content: '';
-      position: absolute; inset: -2px;
-      border-radius: calc(var(--radius) + 2px);
-      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
-      background-size: 200% 100%;
-      animation: borderFlow 3s linear infinite;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 0;
-    }
-    .input-wrap:focus-within::before { opacity: 1; }
-    @keyframes borderFlow {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
-    }
-    .input-inner {
-      position: relative; z-index: 1;
-      display: flex; align-items: center;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .input-icon {
-      padding: 0 16px; color: var(--muted); font-size: 18px;
-      flex-shrink: 0;
-    }
-    #linkInput {
-      flex: 1; padding: 16px 8px;
-      background: transparent; color: var(--text);
-      font-size: 15px;
-    }
-    #linkInput::placeholder { color: var(--muted); }
-    .paste-btn {
-      padding: 8px 14px; margin: 8px;
-      background: var(--surface2);
-      color: var(--muted); font-size: 13px; font-weight: 500;
-      border-radius: var(--radius-sm);
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-    .paste-btn:hover { color: var(--text); background: var(--border); }
-    .fetch-btn {
-      padding: 12px 28px; margin: 8px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff; font-size: 15px; font-weight: 600;
-      border-radius: var(--radius-sm);
-      transition: all 0.2s; flex-shrink: 0;
-      box-shadow: 0 4px 20px rgba(79,142,247,0.3);
-    }
-    .fetch-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(79,142,247,0.4); }
-    .fetch-btn:active { transform: translateY(0); }
-    .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  /* ── LAYOUT ── */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
 
-    /* ── FEATURES STRIP ─────────────────────────────── */
-    .features {
-      display: flex; justify-content: center; flex-wrap: wrap;
-      gap: 10px 24px; margin-top: 20px;
-    }
-    .feature-item {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 13px; color: var(--muted);
-    }
-    .feature-item span { color: var(--success); }
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 48px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
 
-    /* ── RESULT SECTION ─────────────────────────────── */
-    #result {
-      max-width: 900px; margin: 0 auto;
-      padding: 0 24px 80px;
-      position: relative; z-index: 1;
-    }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
 
-    /* Loading */
-    .loader {
-      text-align: center; padding: 60px;
-    }
-    .spinner {
-      width: 44px; height: 44px; margin: 0 auto 16px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader p { color: var(--muted); font-size: 14px; }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--violet), var(--cyan));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
 
-    /* Error */
-    .error-box {
-      background: rgba(247,92,92,0.08);
-      border: 1px solid rgba(247,92,92,0.25);
-      border-radius: var(--radius);
-      padding: 20px 24px;
-      display: flex; align-items: flex-start; gap: 14px;
-    }
-    .error-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
-    .error-box h3 { font-size: 15px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
-    .error-box p { font-size: 14px; color: var(--muted); }
+  .logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+  }
 
-    /* Card */
-    .result-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      animation: fadeUp 0.4s ease;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+  .logo-text span { color: var(--violet-l); }
 
-    /* Video Player */
-    .player-wrap {
-      position: relative;
-      background: #000;
-      aspect-ratio: 16/9;
-    }
-    #videoPlayer {
-      width: 100%; height: 100%;
-      display: block;
-    }
-    .player-placeholder {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 12px; color: var(--muted);
-      background: linear-gradient(135deg, #0d1220, #111826);
-    }
-    .play-icon-big {
-      width: 64px; height: 64px;
-      background: rgba(79,142,247,0.15);
-      border: 2px solid rgba(79,142,247,0.3);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; cursor: pointer;
-      transition: all 0.2s;
-    }
-    .play-icon-big:hover {
-      background: rgba(79,142,247,0.25);
-      transform: scale(1.05);
-    }
-    .thumb-bg {
-      position: absolute; inset: 0;
-      background-size: cover; background-position: center;
-      filter: brightness(0.3);
-    }
-    .player-placeholder > * { position: relative; z-index: 1; }
+  .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(124,58,237,.15);
+    border: 1px solid rgba(124,58,237,.3);
+    border-radius: 99px;
+    color: var(--violet-l);
+  }
 
-    /* File Info */
-    .file-info {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; flex-wrap: wrap;
-    }
-    .file-meta h2 {
-      font-size: 15px; font-weight: 600;
-      margin-bottom: 4px;
-      word-break: break-all;
-    }
-    .file-tags {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .tag {
-      font-size: 12px; font-weight: 500;
-      padding: 2px 10px; border-radius: 20px;
-    }
-    .tag-size {
-      background: rgba(79,142,247,0.1);
-      color: var(--accent);
-      border: 1px solid rgba(79,142,247,0.2);
-    }
-    .tag-type {
-      background: rgba(123,92,250,0.1);
-      color: var(--accent2);
-      border: 1px solid rgba(123,92,250,0.2);
-    }
-    .tag-time {
-      background: rgba(107,114,148,0.1);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      font-size: 11px;
-    }
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 44px;
+  }
 
-    /* Action Buttons */
-    .actions {
-      padding: 20px 24px;
-      display: flex; gap: 12px; flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 22px; border-radius: var(--radius-sm);
-      font-size: 14px; font-weight: 600;
-      transition: all 0.2s; cursor: pointer;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      box-shadow: 0 3px 16px rgba(79,142,247,0.25);
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(79,142,247,0.35); }
-    .btn-secondary {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: var(--border); }
-    .btn-ghost {
-      background: transparent; color: var(--muted);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
 
-    /* Copy link section */
-    .copy-section {
-      padding: 0 24px 20px;
-      display: flex; gap: 8px;
-    }
-    .copy-input {
-      flex: 1; padding: 10px 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--muted); font-size: 13px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .copy-btn {
-      padding: 10px 18px;
-      background: var(--surface2);
-      color: var(--text); font-size: 13px; font-weight: 600;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      transition: all 0.2s; flex-shrink: 0;
-    }
-    .copy-btn:hover { background: var(--border); }
-    .copy-btn.copied { color: var(--success); border-color: rgba(34,212,122,0.3); }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--violet-l), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-    /* Toast */
-    #toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text); font-size: 14px; font-weight: 500;
-      padding: 12px 22px; border-radius: 30px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      opacity: 0; transition: all 0.3s; pointer-events: none;
-      z-index: 999; white-space: nowrap;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    #toast.success { border-color: rgba(34,212,122,0.3); color: var(--success); }
-    #toast.error-t  { border-color: rgba(247,92,92,0.3); color: var(--danger); }
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 460px;
+    margin: 0 auto;
+  }
 
-    /* How to section */
-    .how-section {
-      max-width: 900px; margin: 0 auto;
-      padding: 0 24px 80px;
-      position: relative; z-index: 1;
-    }
-    .section-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 22px; font-weight: 700;
-      margin-bottom: 24px; text-align: center;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    .step-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      transition: border-color 0.2s;
-    }
-    .step-card:hover { border-color: rgba(79,142,247,0.3); }
-    .step-num {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px; font-weight: 700;
-      color: var(--accent); margin-bottom: 12px;
-    }
-    .step-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .step-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  /* ── INPUT CARD ── */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 32px;
+  }
 
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 24px;
-      text-align: center; color: var(--muted); font-size: 13px;
-      position: relative; z-index: 1;
-    }
+  .input-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: block;
+  }
 
-    /* Responsive */
-    @media (max-width: 600px) {
-      .hero { padding: 48px 16px 32px; }
-      .hero p { font-size: 15px; }
-      .input-inner { flex-wrap: wrap; }
-      .paste-btn { display: none; }
-      .fetch-btn { margin: 0 8px 8px; width: calc(100% - 16px); }
-      #linkInput { padding: 14px 8px; }
-      .file-info { flex-direction: column; }
-      .actions { flex-direction: column; }
-      .btn { justify-content: center; }
-      .copy-section { flex-direction: column; }
-    }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
-    @media (prefers-reduced-motion: reduce) {
-      .input-wrap::before { animation: none; opacity: 0.5; }
-      .spinner { animation: none; }
-      .result-card { animation: none; }
-    }
-  </style>
+  .url-input {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .url-input::placeholder { color: var(--muted); }
+
+  .url-input:focus {
+    border-color: rgba(124,58,237,.5);
+    box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s, transform .1s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--violet), #5B21B6);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(124,58,237,.35);
+  }
+
+  .btn-primary:hover:not(:disabled) { opacity: .9; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-outline:hover { background: var(--surface2); }
+
+  .btn-dl {
+    background: linear-gradient(135deg, var(--cyan), #0891B2);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(6,182,212,.25);
+  }
+
+  /* ── LOADING ── */
+  .loading-wrap {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 0 8px;
+    color: var(--muted);
+    font-size: .88rem;
+  }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(124,58,237,.3);
+    border-top-color: var(--violet);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ERROR ── */
+  .error-box {
+    display: none;
+    background: rgba(239,68,68,.08);
+    border: 1px solid rgba(239,68,68,.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #FCA5A5;
+    font-size: .88rem;
+    margin-top: 14px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ── RESULT SECTION ── */
+  #result { display: none; }
+
+  /* ── FILE META BAR ── */
+  .meta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .file-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+  .file-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(124,58,237,.25), rgba(6,182,212,.15));
+    border-radius: 10px;
+    border: 1px solid rgba(124,58,237,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .file-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: .95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 360px;
+  }
+
+  .file-size {
+    font-size: .78rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .duration-pill {
+    flex-shrink: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    background: rgba(6,182,212,.12);
+    border: 1px solid rgba(6,182,212,.25);
+    border-radius: 99px;
+    color: var(--cyan);
+  }
+
+  /* ── VIDEO PLAYER ── */
+  .player-wrap {
+    position: relative;
+    background: #000;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6);
+  }
+
+  .player-wrap video {
+    width: 100%;
+    display: block;
+    max-height: 480px;
+    background: #000;
+  }
+
+  /* Thumbnail overlay */
+  .thumb-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.4);
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+
+  .thumb-overlay img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .play-btn-big {
+    position: relative; z-index: 1;
+    width: 68px; height: 68px;
+    background: rgba(124,58,237,.9);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 8px 32px rgba(124,58,237,.5);
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .thumb-overlay:hover .play-btn-big {
+    transform: scale(1.08);
+    box-shadow: 0 12px 40px rgba(124,58,237,.7);
+  }
+
+  .thumb-overlay.hidden { display: none; }
+
+  /* ── QUALITY SWITCHER ── */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .quality-label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+  }
+
+  .quality-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .q-pill {
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    transition: all .15s;
+  }
+
+  .q-pill:hover { border-color: rgba(124,58,237,.4); color: var(--violet-l); }
+
+  .q-pill.active {
+    background: linear-gradient(135deg, var(--violet), #5B21B6);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(124,58,237,.4);
+  }
+
+  /* ── STREAM INFO ── */
+  .stream-type {
+    font-size: .78rem;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
+  /* ── DOWNLOAD SECTION ── */
+  .dl-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+
+  .dl-section h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .dl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .dl-info {
+    font-size: .88rem;
+    color: var(--muted);
+  }
+
+  .dl-info strong {
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* ── COPY LINK ── */
+  .copy-row {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .copy-input {
+    flex: 1; min-width: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    color: var(--muted);
+    font-size: .8rem;
+    font-family: monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    outline: none;
+  }
+
+  .btn-copy {
+    padding: 9px 16px;
+    font-size: .82rem;
+  }
+
+  /* ── FEATURES STRIP ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 40px;
+    margin-bottom: 10px;
+  }
+
+  .feat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .feat-icon { font-size: 22px; margin-bottom: 8px; }
+
+  .feat-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .feat-desc { font-size: .75rem; color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding-top: 40px;
+    color: var(--muted);
+    font-size: .78rem;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  footer a { color: var(--violet-l); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 500px) {
+    header { padding: 20px 0 32px; }
+    .hero h1 { font-size: 1.8rem; }
+    .btn { padding: 12px 16px; font-size: .85rem; }
+    .file-name { max-width: 180px; }
+  }
+</style>
 </head>
 <body>
+<div class="container">
 
-  <!-- NAV -->
-  <nav>
-    <div class="nav-inner">
-      <div class="logo">
-        <div class="logo-icon">▶</div>
-        TeraFetch
-      </div>
-      <div class="nav-badge">Free • No Login</div>
+  <!-- Header -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-mark">▶</div>
+      <div class="logo-text">Tera<span>Play</span></div>
+    </a>
+    <span class="badge">Free Streaming</span>
+  </header>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Stream & Download<br/><em>TeraBox Videos</em></h1>
+    <p>Paste any TeraBox share link to instantly stream in HD or download — no app required.</p>
+  </div>
+
+  <!-- Input Card -->
+  <div class="input-card">
+    <span class="input-label">TeraBox Share Link</span>
+    <div class="input-row">
+      <input
+        class="url-input"
+        id="urlInput"
+        type="url"
+        placeholder="https://terabox.com/s/…  or  https://1024terabox.com/s/…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn btn-primary" id="loadBtn" onclick="loadVideo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Load Video
+      </button>
     </div>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-eyebrow">
-      <span>⚡</span> Instant TeraBox Downloader
+    <div class="loading-wrap" id="loading">
+      <div class="spinner"></div>
+      <span>Fetching video info…</span>
     </div>
-    <h1>Stream & Download<br /><span>TeraBox Videos</span></h1>
-    <p>Paste any TeraBox share link. Watch instantly or download at full speed.</p>
+    <div class="error-box" id="errorBox" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errorMsg">Something went wrong.</span>
+    </div>
+  </div>
 
-    <div class="input-wrap">
-      <div class="input-inner">
-        <div class="input-icon">🔗</div>
-        <input
-          type="url"
-          id="linkInput"
-          placeholder="https://terabox.com/s/..."
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        />
-        <button class="paste-btn" onclick="pasteLink()">Paste</button>
-        <button class="fetch-btn" onclick="fetchLink()" id="fetchBtn">Fetch →</button>
+  <!-- Result Section -->
+  <div id="result">
+
+    <!-- Meta Bar -->
+    <div class="meta-bar">
+      <div class="file-info">
+        <div class="file-icon">🎬</div>
+        <div>
+          <div class="file-name" id="fileName">video.mp4</div>
+          <div class="file-size" id="fileSize">—</div>
+        </div>
+      </div>
+      <div class="duration-pill" id="durationPill">0:00</div>
+    </div>
+
+    <!-- Video Player -->
+    <div class="player-wrap">
+      <video id="videoEl" controls playsinline preload="metadata"></video>
+      <div class="thumb-overlay" id="thumbOverlay" onclick="startPlay()">
+        <img id="thumbImg" src="" alt="thumbnail"/>
+        <div class="play-btn-big">▶</div>
       </div>
     </div>
 
-    <div class="features">
-      <div class="feature-item"><span>✓</span> No login needed</div>
-      <div class="feature-item"><span>✓</span> Fast streaming</div>
-      <div class="feature-item"><span>✓</span> Direct download</div>
-      <div class="feature-item"><span>✓</span> All TeraBox links</div>
-    </div>
-  </section>
-
-  <!-- RESULT -->
-  <div id="result"></div>
-
-  <!-- HOW TO USE -->
-  <section class="how-section" id="how">
-    <div class="section-title">How it works</div>
-    <div class="steps">
-      <div class="step-card">
-        <div class="step-num">STEP 01</div>
-        <h3>Copy the link</h3>
-        <p>Open your TeraBox share link and copy it from the browser or app.</p>
+    <!-- Controls Row -->
+    <div class="controls-row">
+      <div>
+        <div class="quality-label">Quality</div>
+        <div class="quality-pills" id="qualityPills"></div>
       </div>
-      <div class="step-card">
-        <div class="step-num">STEP 02</div>
-        <h3>Paste & Fetch</h3>
-        <p>Paste the link above and click Fetch. We'll extract the file info instantly.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-num">STEP 03</div>
-        <h3>Watch or Download</h3>
-        <p>Stream directly in the browser or download the file at full speed.</p>
+      <div class="stream-type">
+        <div class="dot"></div>
+        <span id="streamTypeLabel">HLS Stream</span>
       </div>
     </div>
-  </section>
 
-  <!-- FOOTER -->
+    <!-- Download Section -->
+    <div class="dl-section">
+      <h3>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download File
+      </h3>
+      <div class="dl-row">
+        <div class="dl-info">
+          <strong id="dlFileName">video.mp4</strong>
+          <span id="dlFileSize">—</span>
+        </div>
+        <a class="btn btn-dl" id="dlBtn" href="#" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+      </div>
+      <div class="copy-row">
+        <input class="copy-input" id="streamLinkInput" readonly value="" onclick="this.select()"/>
+        <button class="btn btn-outline btn-copy" onclick="copyStreamLink()">Copy Stream URL</button>
+      </div>
+    </div>
+
+  </div><!-- /result -->
+
+  <!-- Features Strip -->
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Fast HLS Stream</div>
+      <div class="feat-desc">360p, 480p & 720p adaptive quality</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">Mobile Ready</div>
+      <div class="feat-desc">Works on iOS Safari & Android</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⬇️</div>
+      <div class="feat-title">Direct Download</div>
+      <div class="feat-desc">Save to device in original quality</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">No Login Needed</div>
+      <div class="feat-desc">Works with any public share link</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
   <footer>
-    <p>TeraFetch — Fast TeraBox video downloader. Not affiliated with TeraBox.</p>
+    <p>TeraPlay — Fast TeraBox streaming. For personal use only. &nbsp;·&nbsp; Not affiliated with TeraBox.</p>
   </footer>
 
-  <!-- TOAST -->
-  <div id="toast"></div>
+</div><!-- /container -->
 
-  <script>
-    // ── CONFIG ──────────────────────────────────────────
-    const API_BASE = "https://terabox-api-3zp5.onrender.com";
+<script>
+const API_BASE = 'https://render-proxy.mazashwaas.workers.dev/api/terabox';
 
-    // ── PASTE ────────────────────────────────────────────
-    async function pasteLink() {
-      try {
-        const text = await navigator.clipboard.readText();
-        document.getElementById("linkInput").value = text;
-        document.getElementById("linkInput").focus();
-      } catch {
-        showToast("Paste manually using Ctrl+V", "error");
-      }
+let currentData = null;
+let hlsInstance = null;
+
+// Quality label map
+const Q_LABELS = { '360p': '360p', '480p': '480p', '720p': '720p HD' };
+
+function normalizeUrl(raw) {
+  raw = raw.trim();
+  // Support various TeraBox domains
+  const domains = [
+    'terabox.com', '1024terabox.com', 'teraboxapp.com',
+    'www.terabox.com', 'www.1024terabox.com',
+    'terabox.fun', 'mirrobox.com', 'nephobox.com',
+    '4funbox.co', 'momerybox.com', 'tibibox.com'
+  ];
+  try {
+    const u = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
+    if (domains.some(d => u.hostname === d || u.hostname.endsWith('.' + d))) return raw;
+  } catch(e) {}
+  return raw;
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  document.getElementById('errorMsg').textContent = msg;
+  box.style.display = 'flex';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+function setLoading(v) {
+  const el = document.getElementById('loading');
+  el.style.display = v ? 'flex' : 'none';
+  document.getElementById('loadBtn').disabled = v;
+}
+
+async function loadVideo() {
+  const raw = document.getElementById('urlInput').value;
+  if (!raw.trim()) { showError('Please enter a TeraBox share link.'); return; }
+
+  hideError();
+  document.getElementById('result').style.display = 'none';
+  setLoading(true);
+
+  const url = normalizeUrl(raw);
+
+  try {
+    const res = await fetch(`${API_BASE}?url=${encodeURIComponent(url)}`);
+    const json = await res.json();
+
+    if (!json.success || !json.data || !json.data.list || !json.data.list.length) {
+      throw new Error(json.error || json.message || 'Could not fetch video info. Check the link and try again.');
     }
 
-    // ── ENTER KEY ────────────────────────────────────────
-    document.getElementById("linkInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") fetchLink();
-    });
+    currentData = json.data.list[0];
+    renderResult(currentData);
+  } catch (err) {
+    showError(err.message || 'Network error. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+}
 
-    // ── FETCH ────────────────────────────────────────────
-    async function fetchLink() {
-      const url = document.getElementById("linkInput").value.trim();
-      const btn = document.getElementById("fetchBtn");
-      const result = document.getElementById("result");
+function renderResult(item) {
+  // Meta
+  document.getElementById('fileName').textContent = item.name || 'video.mp4';
+  document.getElementById('dlFileName').textContent = item.name || 'video.mp4';
+  document.getElementById('fileSize').textContent = item.size_formatted || formatBytes(item.size);
+  document.getElementById('dlFileSize').textContent = item.size_formatted || formatBytes(item.size);
+  document.getElementById('durationPill').textContent = item.duration || '';
 
-      if (!url) {
-        showToast("Please paste a TeraBox link first", "error");
-        document.getElementById("linkInput").focus();
-        return;
-      }
+  // Thumbnail
+  if (item.thumbnail) {
+    document.getElementById('thumbImg').src = item.thumbnail;
+    document.getElementById('thumbOverlay').classList.remove('hidden');
+  } else {
+    document.getElementById('thumbOverlay').classList.add('hidden');
+  }
 
-      if (!url.startsWith("http")) {
-        showToast("Invalid URL — must start with https://", "error");
-        return;
-      }
+  // Download link
+  if (item.normal_dlink) {
+    document.getElementById('dlBtn').href = item.normal_dlink;
+    document.getElementById('streamLinkInput').value = item.stream_url || item.normal_dlink || '';
+  }
 
-      // Loading state
-      btn.disabled = true;
-      btn.textContent = "Fetching…";
-      result.innerHTML = `
-        <div class="loader">
-          <div class="spinner"></div>
-          <p>Fetching file info…</p>
-        </div>`;
+  // Quality pills
+  buildQualityPills(item);
 
-      try {
-        const res = await fetch(`${API_BASE}/api?url=${encodeURIComponent(url)}`);
-        const data = await res.json();
+  // Show result
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-        if (data.status !== "success") {
-          showError(data.error || data.message || "Could not fetch file. Check your link.");
-          return;
-        }
+function buildQualityPills(item) {
+  const container = document.getElementById('qualityPills');
+  container.innerHTML = '';
 
-        renderResult(data);
-      } catch (err) {
-        showError("Network error — make sure the API is running.");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Fetch →";
-      }
-    }
+  const fast = item.fast_stream_url || {};
+  const qualities = [];
 
-    // ── RENDER RESULT ────────────────────────────────────
-    function renderResult(data) {
-      const result = document.getElementById("result");
-      const isVideo = data.is_video;
-      const proxyStream = `${API_BASE}/download?url=${encodeURIComponent(data.url)}`;
-      const thumb = data.thumbs?.url3 || data.thumbs?.url2 || data.thumbs?.url1 || null;
-      const ext = (data.filename || "").split(".").pop().toUpperCase();
+  // Add HLS fast streams
+  Object.entries(fast).forEach(([q, url]) => {
+    qualities.push({ label: Q_LABELS[q] || q, url, type: 'hls', key: q });
+  });
 
-      result.innerHTML = `
-        <div class="result-card">
+  // Sort: 720p first
+  qualities.sort((a,b) => {
+    const order = {'720p':0,'480p':1,'360p':2};
+    return (order[a.key]??9) - (order[b.key]??9);
+  });
 
-          ${isVideo ? `
-          <!-- VIDEO PLAYER -->
-          <div class="player-wrap">
-            ${thumb ? `<div class="thumb-bg" style="background-image:url('${thumb}')"></div>` : ""}
-            <div class="player-placeholder" id="placeholder">
-              <div class="play-icon-big" onclick="startPlay('${proxyStream}', '${escHtml(data.filename)}')">▶</div>
-              <p style="font-size:14px;">Click to play</p>
-              ${data.size ? `<p style="font-size:12px;opacity:0.5;">${data.size}</p>` : ""}
-            </div>
-            <video id="videoPlayer" controls style="display:none;" preload="metadata">
-              Your browser does not support video playback.
-            </video>
-          </div>
-          ` : `
-          <!-- FILE ICON -->
-          <div style="padding:32px;text-align:center;">
-            <div style="font-size:48px;margin-bottom:8px;">📄</div>
-            <p style="color:var(--muted);font-size:14px;">File ready to download</p>
-          </div>
-          `}
+  // Add normal stream fallback
+  if (item.stream_url) {
+    qualities.push({ label: 'Original', url: item.stream_url, type: 'mp4', key: 'orig' });
+  }
 
-          <!-- FILE INFO -->
-          <div class="file-info">
-            <div class="file-meta">
-              <h2>${escHtml(data.filename || "Unknown file")}</h2>
-              <div class="file-tags">
-                ${data.size ? `<span class="tag tag-size">${data.size}</span>` : ""}
-                ${ext ? `<span class="tag tag-type">${ext}</span>` : ""}
-                <span class="tag tag-time">⚡ ${data.response_time}</span>
-              </div>
-            </div>
-          </div>
+  // Default to best quality or item.quality
+  const defaultKey = item.quality || (qualities[0] && qualities[0].key);
 
-          <!-- ACTIONS -->
-          <div class="actions">
-            ${isVideo ? `
-            <button class="btn btn-primary" onclick="startPlay('${proxyStream}', '${escHtml(data.filename)}')">
-              ▶ &nbsp;Play Video
-            </button>
-            ` : ""}
-            <a class="btn btn-secondary" href="${proxyStream}&dl=1" download="${escHtml(data.filename)}">
-              ⬇ &nbsp;Download
-            </a>
-            <button class="btn btn-ghost" onclick="copyToClipboard('${proxyStream}')">
-              🔗 &nbsp;Copy Stream Link
-            </button>
-          </div>
+  qualities.forEach(q => {
+    const pill = document.createElement('button');
+    pill.className = 'q-pill' + (q.key === defaultKey ? ' active' : '');
+    pill.textContent = q.label;
+    pill.onclick = () => {
+      document.querySelectorAll('.q-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      loadStream(q.url, q.type);
+    };
+    container.appendChild(pill);
+  });
 
-          <!-- COPY DIRECT LINK -->
-          <div class="copy-section">
-            <input class="copy-input" readonly value="${proxyStream}" id="streamInput" />
-            <button class="copy-btn" id="copyBtn" onclick="copyInput()">Copy</button>
-          </div>
+  // Auto-load default
+  const def = qualities.find(q => q.key === defaultKey) || qualities[0];
+  if (def) {
+    loadStream(def.url, def.type);
+  }
+}
 
-        </div>`;
+function loadStream(url, type) {
+  const video = document.getElementById('videoEl');
+  const label = document.getElementById('streamTypeLabel');
 
-      result.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+  // Destroy existing HLS
+  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
 
-    // ── PLAY VIDEO ───────────────────────────────────────
-    function startPlay(src, filename) {
-      const placeholder = document.getElementById("placeholder");
-      const player = document.getElementById("videoPlayer");
-      if (!player) return;
+  video.src = '';
+  // Keep thumbnail until play
+  document.getElementById('thumbOverlay').classList.remove('hidden');
 
-      placeholder.style.display = "none";
-      player.style.display = "block";
-      player.src = src;
-      player.play().catch(() => {
-        showToast("Autoplay blocked — press play manually", "error");
+  if (type === 'hls' && url.includes('.m3u8')) {
+    if (Hls.isSupported()) {
+      hlsInstance = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 30,
       });
+      hlsInstance.loadSource(url);
+      hlsInstance.attachMedia(video);
+      label.textContent = 'HLS Adaptive Stream';
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // iOS Safari native HLS
+      video.src = url;
+      label.textContent = 'Native HLS (iOS)';
+    } else {
+      // Fallback to direct stream
+      video.src = currentData.stream_url || url;
+      label.textContent = 'Direct Stream';
     }
+  } else {
+    video.src = url;
+    label.textContent = 'Direct MP4 Stream';
+  }
+}
 
-    // ── ERROR ────────────────────────────────────────────
-    function showError(msg) {
-      document.getElementById("result").innerHTML = `
-        <div class="error-box">
-          <div class="error-icon">⚠️</div>
-          <div>
-            <h3>Could not fetch file</h3>
-            <p>${escHtml(msg)}</p>
-          </div>
-        </div>`;
-    }
+function startPlay() {
+  const video = document.getElementById('videoEl');
+  document.getElementById('thumbOverlay').classList.add('hidden');
+  video.play().catch(() => {});
+}
 
-    // ── COPY ─────────────────────────────────────────────
-    function copyInput() {
-      const val = document.getElementById("streamInput")?.value;
-      if (!val) return;
-      copyToClipboard(val);
-      const btn = document.getElementById("copyBtn");
-      btn.textContent = "Copied!";
-      btn.classList.add("copied");
-      setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
-    }
+function copyStreamLink() {
+  const input = document.getElementById('streamLinkInput');
+  input.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  const btn = input.nextElementSibling;
+  const orig = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = orig; }, 2000);
+}
 
-    async function copyToClipboard(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        showToast("Link copied!", "success");
-      } catch {
-        showToast("Could not copy — try manually", "error");
-      }
-    }
+function formatBytes(b) {
+  if (!b) return '—';
+  const units = ['B','KB','MB','GB'];
+  let i = 0; let v = b;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return v.toFixed(2) + ' ' + units[i];
+}
 
-    // ── TOAST ────────────────────────────────────────────
-    let toastTimer;
-    function showToast(msg, type = "") {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.className = "show" + (type === "success" ? " success" : type === "error" ? " error-t" : "");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { t.className = ""; }, 3000);
-    }
+// Enter key support
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadVideo();
+});
 
-    // ── UTILS ────────────────────────────────────────────
-    function escHtml(str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-  </script>
+// Load from URL param on page open (e.g. ?url=…)
+(function() {
+  const params = new URLSearchParams(location.search);
+  const u = params.get('url');
+  if (u) {
+    document.getElementById('urlInput').value = u;
+    loadVideo();
+  }
+})();
+</script>
 </body>
 </html>
