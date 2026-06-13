@@ -269,9 +269,7 @@ body::before{
 }
 .convert-toast svg{flex-shrink:0}
 
-#ztera-ad{margin-top:14px}
-#delayedAdContainer{display:none;margin-top:14px}
-.ad-grid{display:flex;flex-direction:column;align-items:center;gap:12px}
+
 
 .features{
   display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:32px;
@@ -315,11 +313,11 @@ footer a{color:var(--violet-l);text-decoration:none}
   </div>
 
   <div class="input-card">
-    <span class="input-label">Paste TeraBox Link 👇</span>
+    <span class="input-label">TeraBox Share Link</span>
     <div class="input-row">
       <input
         class="url-input" id="userInput" type="url"
-        placeholder="Enter Terabox link here…"
+        placeholder="https://terabox.com/s/…"
         autocomplete="off" spellcheck="false"
       />
       <button class="btn btn-paste" id="clipBtn" onclick="toggleClipboard()">📋 Paste</button>
@@ -329,10 +327,6 @@ footer a{color:var(--violet-l);text-decoration:none}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       Generate Player
     </button>
-
-    <div id="ztera-ad"></div>
-    <script src="https://ztera-ads.pages.dev/ad.js"></script>
-    <script>if(typeof ZteraAds!=='undefined'){ZteraAds.show({container:"ztera-ad",refresh:20000});}</script>
 
     <div class="loading-wrap" id="loading">
       <div class="spinner"></div>
@@ -382,6 +376,10 @@ footer a{color:var(--violet-l);text-decoration:none}
       <a class="btn btn-download" id="downloadBtn" href="#" target="_blank" rel="noopener">⬇ Download</a>
     </div>
 
+
+
+  </div>
+
   <div class="features">
     <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Fast HLS Stream</div><div class="feat-desc">360p, 480p &amp; 720p quality</div></div>
     <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">Mobile Ready</div><div class="feat-desc">iOS Safari &amp; Android</div></div>
@@ -404,7 +402,7 @@ let hlsInstance=null;
 const TERA_DOMAINS=[
   '1024terabox.com','teraboxapp.com','nephobox.com','mirrobox.com',
   '4funbox.co','4funbox.com','momerybox.com','tibibox.com',
-  'terashare.com','terabox.fun','www.terabox.com','terasharefile.com','teraboxurl.com','teraboxlink.com
+  'terashare.com','terabox.fun','www.terabox.com'
 ];
 
 function cleanLink(s){return s.split(" ")[0].trim();}
@@ -580,7 +578,7 @@ function showResult(){
   setTimeout(()=>{r.scrollIntoView({behavior:'smooth',block:'start'});},120);
 }
 
-setTimeout(()=>{const e=document.getElementById('delayedAdContainer');if(e)e.style.display='block';},5000);
+
 
 document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchData();});
 
