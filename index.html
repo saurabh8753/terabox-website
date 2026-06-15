@@ -1,590 +1,797 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>ZTERA Player Pro | TeraBox Stream & Download</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeraBox Downloader — Fast & Free</title>
+  <meta name="description" content="Download and stream TeraBox videos instantly. No login required. Paste your link and get started." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ─────────────────────────────────────── */
+    :root {
+      --bg:        #0a0c12;
+      --surface:   #111520;
+      --surface2:  #181d2e;
+      --border:    #1e2540;
+      --accent:    #4f8ef7;
+      --accent2:   #7b5cfa;
+      --success:   #22d47a;
+      --danger:    #f75c5c;
+      --text:      #e8eaf0;
+      --muted:     #6b7294;
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
 
-:root{
-  --bg:#0A0E1A;
-  --surface:#111827;
-  --surface2:#1A2235;
-  --border:rgba(255,255,255,0.07);
-  --violet:#7C3AED;
-  --violet-l:#A78BFA;
-  --cyan:#06B6D4;
-  --text:#F8FAFC;
-  --muted:#94A3B8;
-  --success:#10B981;
-  --danger:#EF4444;
-  --radius:14px;
-}
+    /* ── RESET ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+    input { font-family: inherit; outline: none; border: none; }
 
-html{scroll-behavior:smooth}
+    /* ── BACKGROUND GLOW ────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 500px;
+      background: radial-gradient(ellipse at center, rgba(79,142,247,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Inter',sans-serif;
-  min-height:100vh;
-  overflow-x:hidden;
-}
+    /* ── NAV ────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0;
+      background: rgba(10,12,18,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .nav-badge {
+      font-size: 11px; font-weight: 600;
+      background: rgba(79,142,247,0.15);
+      color: var(--accent);
+      padding: 3px 10px; border-radius: 20px;
+      border: 1px solid rgba(79,142,247,0.25);
+    }
 
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:
-    radial-gradient(ellipse 60% 50% at 50% -10%,rgba(124,58,237,.22) 0%,transparent 70%),
-    radial-gradient(ellipse 40% 30% at 90% 60%,rgba(6,182,212,.1) 0%,transparent 60%);
-  pointer-events:none;
-  z-index:0;
-}
+    /* ── HERO ───────────────────────────────────────── */
+    .hero {
+      max-width: 900px; margin: 0 auto;
+      padding: 80px 24px 48px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--accent);
+      background: rgba(79,142,247,0.08);
+      border: 1px solid rgba(79,142,247,0.2);
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 700; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 18px; color: var(--muted);
+      max-width: 500px; margin: 0 auto 40px;
+    }
 
-.header{
-  position:sticky;top:0;z-index:999;
-  background:rgba(10,14,26,.88);
-  backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  padding:15px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-}
+    /* ── INPUT BOX ─────────────────────────────────── */
+    .input-wrap {
+      position: relative;
+      max-width: 680px; margin: 0 auto;
+    }
+    /* animated gradient border — signature element */
+    .input-wrap::before {
+      content: '';
+      position: absolute; inset: -2px;
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+      background-size: 200% 100%;
+      animation: borderFlow 3s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 0;
+    }
+    .input-wrap:focus-within::before { opacity: 1; }
+    @keyframes borderFlow {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+    .input-inner {
+      position: relative; z-index: 1;
+      display: flex; align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .input-icon {
+      padding: 0 16px; color: var(--muted); font-size: 18px;
+      flex-shrink: 0;
+    }
+    #linkInput {
+      flex: 1; padding: 16px 8px;
+      background: transparent; color: var(--text);
+      font-size: 15px;
+    }
+    #linkInput::placeholder { color: var(--muted); }
+    .paste-btn {
+      padding: 8px 14px; margin: 8px;
+      background: var(--surface2);
+      color: var(--muted); font-size: 13px; font-weight: 500;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .paste-btn:hover { color: var(--text); background: var(--border); }
+    .fetch-btn {
+      padding: 12px 28px; margin: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s; flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+    }
+    .fetch-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(79,142,247,0.4); }
+    .fetch-btn:active { transform: translateY(0); }
+    .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-mark{
-  width:34px;height:34px;
-  background:linear-gradient(135deg,var(--violet),var(--cyan));
-  border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;
-}
-.logo-text{
-  font-family:'Space Grotesk',sans-serif;
-  font-weight:700;font-size:1.1rem;letter-spacing:-.02em;
-}
-.logo-text span{color:var(--violet-l)}
+    /* ── FEATURES STRIP ─────────────────────────────── */
+    .features {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 10px 24px; margin-top: 20px;
+    }
+    .feature-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--muted);
+    }
+    .feature-item span { color: var(--success); }
 
-.badge{
-  font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-  padding:4px 10px;
-  background:rgba(124,58,237,.15);
-  border:1px solid rgba(124,58,237,.3);
-  border-radius:99px;color:var(--violet-l);
-}
+    /* ── RESULT SECTION ─────────────────────────────── */
+    #result {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative; z-index: 1;
+    }
 
-.container{
-  position:relative;z-index:1;
-  max-width:520px;margin:0 auto;
-  padding:30px 18px 80px;
-}
+    /* Loading */
+    .loader {
+      text-align: center; padding: 60px;
+    }
+    .spinner {
+      width: 44px; height: 44px; margin: 0 auto 16px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader p { color: var(--muted); font-size: 14px; }
 
-.hero{text-align:center;margin-bottom:28px}
-.hero h1{
-  font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(1.7rem,5vw,2.7rem);
-  font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:9px;
-}
-.hero h1 em{
-  font-style:normal;
-  background:linear-gradient(90deg,var(--violet-l),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero p{color:var(--muted);font-size:.93rem}
+    /* Error */
+    .error-box {
+      background: rgba(247,92,92,0.08);
+      border: 1px solid rgba(247,92,92,0.25);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .error-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .error-box h3 { font-size: 15px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
+    .error-box p { font-size: 14px; color: var(--muted); }
 
-.input-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:20px;margin-bottom:24px;
-}
+    /* Card */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-.input-label{
-  font-size:.73rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:9px;display:block;
-}
+    /* Video Player */
+    .player-wrap {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16/9;
+    }
+    #videoPlayer {
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .player-placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: var(--muted);
+      background: linear-gradient(135deg, #0d1220, #111826);
+    }
+    .play-icon-big {
+      width: 64px; height: 64px;
+      background: rgba(79,142,247,0.15);
+      border: 2px solid rgba(79,142,247,0.3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .play-icon-big:hover {
+      background: rgba(79,142,247,0.25);
+      transform: scale(1.05);
+    }
+    .thumb-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      filter: brightness(0.3);
+    }
+    .player-placeholder > * { position: relative; z-index: 1; }
 
-.input-row{display:flex;gap:8px}
+    /* File Info */
+    .file-info {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .file-meta h2 {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .file-tags {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 12px; font-weight: 500;
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .tag-size {
+      background: rgba(79,142,247,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(79,142,247,0.2);
+    }
+    .tag-type {
+      background: rgba(123,92,250,0.1);
+      color: var(--accent2);
+      border: 1px solid rgba(123,92,250,0.2);
+    }
+    .tag-time {
+      background: rgba(107,114,148,0.1);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: 11px;
+    }
 
-.url-input{
-  flex:1;min-width:0;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:12px 14px;
-  color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;
-  outline:none;transition:border-color .2s,box-shadow .2s;
-}
-.url-input::placeholder{color:var(--muted)}
-.url-input:focus{border-color:rgba(124,58,237,.5);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+    /* Action Buttons */
+    .actions {
+      padding: 20px 24px;
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 600;
+      transition: all 0.2s; cursor: pointer;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 3px 16px rgba(79,142,247,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(79,142,247,0.35); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); background: var(--surface2); }
 
-.btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:11px 16px;border-radius:10px;
-  font-family:'Space Grotesk',sans-serif;font-size:.86rem;font-weight:600;
-  cursor:pointer;border:none;
-  transition:opacity .15s,transform .1s;
-  text-decoration:none;white-space:nowrap;color:#fff;
-}
-.btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    /* Copy link section */
+    .copy-section {
+      padding: 0 24px 20px;
+      display: flex; gap: 8px;
+    }
+    .copy-input {
+      flex: 1; padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--muted); font-size: 13px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .copy-btn {
+      padding: 10px 18px;
+      background: var(--surface2);
+      color: var(--text); font-size: 13px; font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .copy-btn:hover { background: var(--border); }
+    .copy-btn.copied { color: var(--success); border-color: rgba(34,212,122,0.3); }
 
-.btn-paste{
-  background:var(--surface2);border:1px solid var(--border);
-  color:var(--muted);font-size:.82rem;padding:11px 13px;
-}
-.btn-paste:hover{color:var(--text);border-color:rgba(124,58,237,.3)}
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0; transition: all 0.3s; pointer-events: none;
+      z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: rgba(34,212,122,0.3); color: var(--success); }
+    #toast.error-t  { border-color: rgba(247,92,92,0.3); color: var(--danger); }
 
-.btn-generate{
-  width:100%;justify-content:center;margin-top:11px;
-  padding:14px;font-size:.93rem;
-  background:linear-gradient(135deg,var(--violet),#5B21B6);
-  box-shadow:0 4px 18px rgba(124,58,237,.35);
-}
-.btn-generate:hover:not(:disabled){opacity:.9}
+    /* How to section */
+    .how-section {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative; z-index: 1;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 24px; text-align: center;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .step-card:hover { border-color: rgba(79,142,247,0.3); }
+    .step-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700;
+      color: var(--accent); margin-bottom: 12px;
+    }
+    .step-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .step-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-.btn-stream{
-  flex:1;justify-content:center;
-  background:linear-gradient(135deg,#2563eb,#3b82f6);
-  box-shadow:0 3px 12px rgba(37,99,235,.3);
-}
-.btn-download{
-  flex:1;justify-content:center;
-  background:linear-gradient(135deg,#16a34a,#22c55e);
-  box-shadow:0 3px 12px rgba(22,163,74,.3);
-}
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center; color: var(--muted); font-size: 13px;
+      position: relative; z-index: 1;
+    }
 
-.loading-wrap{
-  display:none;align-items:center;justify-content:center;gap:11px;
-  padding:14px 0 2px;color:var(--muted);font-size:.86rem;
-}
-.spinner{
-  width:17px;height:17px;flex-shrink:0;
-  border:2px solid rgba(124,58,237,.3);border-top-color:var(--violet);
-  border-radius:50%;animation:spin .7s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+    /* Responsive */
+    @media (max-width: 600px) {
+      .hero { padding: 48px 16px 32px; }
+      .hero p { font-size: 15px; }
+      .input-inner { flex-wrap: wrap; }
+      .paste-btn { display: none; }
+      .fetch-btn { margin: 0 8px 8px; width: calc(100% - 16px); }
+      #linkInput { padding: 14px 8px; }
+      .file-info { flex-direction: column; }
+      .actions { flex-direction: column; }
+      .btn { justify-content: center; }
+      .copy-section { flex-direction: column; }
+    }
 
-.error-box{
-  display:none;
-  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
-  border-radius:10px;padding:11px 13px;color:#FCA5A5;font-size:.85rem;
-  margin-top:11px;align-items:center;gap:8px;
-}
-
-#result{display:none;animation:fadeUp .4s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-
-.meta-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:10px;margin-bottom:13px;
-}
-.file-info{display:flex;align-items:center;gap:10px;min-width:0}
-.file-icon{
-  width:38px;height:38px;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.15));
-  border-radius:10px;border:1px solid rgba(124,58,237,.2);
-  display:flex;align-items:center;justify-content:center;font-size:17px;
-}
-.file-name{
-  font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.9rem;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;
-}
-.file-size{font-size:.73rem;color:var(--muted);margin-top:2px}
-
-.duration-pill{
-  flex-shrink:0;font-family:'Space Grotesk',sans-serif;
-  font-size:.72rem;font-weight:600;padding:4px 10px;
-  background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.25);
-  border-radius:99px;color:var(--cyan);
-}
-
-.player-wrap{
-  position:relative;background:#000;
-  border-radius:var(--radius);overflow:hidden;
-  border:1px solid var(--border);margin-bottom:14px;
-  box-shadow:0 18px 46px rgba(0,0,0,.55);
-}
-.player-wrap video{width:100%;display:block;max-height:290px;background:#000}
-
-.thumb-overlay{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-}
-.thumb-overlay img{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
-}
-.thumb-overlay::after{
-  content:'';position:absolute;inset:0;background:rgba(0,0,0,.38);z-index:1;
-}
-.play-btn-big{
-  position:relative;z-index:2;
-  width:62px;height:62px;
-  background:rgba(124,58,237,.92);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:23px;
-  box-shadow:0 8px 26px rgba(124,58,237,.5);transition:transform .15s,box-shadow .15s;
-}
-.thumb-overlay:hover .play-btn-big{transform:scale(1.08);box-shadow:0 12px 36px rgba(124,58,237,.7)}
-.thumb-overlay.hidden{display:none}
-
-.controls-row{
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:10px;margin-bottom:14px;
-}
-.quality-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.quality-pills{display:flex;gap:6px;flex-wrap:wrap}
-.q-pill{
-  padding:5px 12px;border-radius:99px;
-  font-family:'Space Grotesk',sans-serif;font-size:.77rem;font-weight:600;
-  cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);
-  transition:all .15s;
-}
-.q-pill:hover{border-color:rgba(124,58,237,.4);color:var(--violet-l)}
-.q-pill.active{
-  background:linear-gradient(135deg,var(--violet),#5B21B6);
-  border-color:transparent;color:#fff;box-shadow:0 2px 10px rgba(124,58,237,.4);
-}
-
-.stream-live{font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:6px}
-.dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--success);box-shadow:0 0 6px var(--success);
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-.actions{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
-
-/* domain-convert toast */
-.convert-toast{
-  display:none;
-  align-items:center;gap:7px;
-  font-size:.78rem;color:var(--cyan);
-  margin-top:7px;
-  animation:fadeUp .3s ease;
-}
-.convert-toast svg{flex-shrink:0}
-
-
-
-.features{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:32px;
-}
-.feat{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:13px;text-align:center;
-}
-.feat-icon{font-size:19px;margin-bottom:5px}
-.feat-title{font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;margin-bottom:3px}
-.feat-desc{font-size:.7rem;color:var(--muted)}
-
-footer{
-  text-align:center;padding-top:28px;color:var(--muted);
-  font-size:.74rem;border-top:1px solid var(--border);margin-top:32px;
-}
-footer a{color:var(--violet-l);text-decoration:none}
-
-@media(max-width:420px){
-  .file-name{max-width:155px}
-  .actions{flex-direction:column}
-  .btn-stream,.btn-download{flex:unset;width:100%}
-}
-</style>
+    @media (prefers-reduced-motion: reduce) {
+      .input-wrap::before { animation: none; opacity: 0.5; }
+      .spinner { animation: none; }
+      .result-card { animation: none; }
+    }
+  </style>
 </head>
 <body>
 
-<header class="header">
-  <a class="logo" href="#">
-    <div class="logo-mark">▶</div>
-    <div class="logo-text">Z<span>TERA</span> Pro</div>
-  </a>
-  <span class="badge">Free Streaming</span>
-</header>
-
-<div class="container">
-
-  <div class="hero">
-    <h1>Stream &amp; Download<br/><em>TeraBox Videos</em></h1>
-    <p>Paste any TeraBox share link to instantly stream in HD or download — no app required.</p>
-  </div>
-
-  <div class="input-card">
-    <span class="input-label">TeraBox Share Link</span>
-    <div class="input-row">
-      <input
-        class="url-input" id="userInput" type="url"
-        placeholder="https://terabox.com/s/…"
-        autocomplete="off" spellcheck="false"
-      />
-      <button class="btn btn-paste" id="clipBtn" onclick="toggleClipboard()">📋 Paste</button>
-    </div>
-
-    <button class="btn btn-generate" id="loadBtn" onclick="fetchData()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Generate Player
-    </button>
-
-    <div class="loading-wrap" id="loading">
-      <div class="spinner"></div>
-      <span>Fetching video info…</span>
-    </div>
-
-    <div class="error-box" id="errorBox" style="display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="errorMsg">Something went wrong.</span>
-    </div>
-  </div>
-
-  <div id="result">
-
-    <div class="meta-bar">
-      <div class="file-info">
-        <div class="file-icon">🎬</div>
-        <div>
-          <div class="file-name" id="fileName">video.mp4</div>
-          <div class="file-size" id="fileSize">—</div>
-        </div>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-icon">▶</div>
+        TeraFetch
       </div>
-      <div class="duration-pill" id="durationPill" style="display:none">0:00</div>
+      <div class="nav-badge">Free • No Login</div>
     </div>
+  </nav>
 
-    <div class="player-wrap">
-      <video id="player" controls playsinline webkit-playsinline preload="metadata"></video>
-      <div class="thumb-overlay hidden" id="thumbOverlay" onclick="startPlay()">
-        <img id="thumbImg" src="" alt="thumbnail"/>
-        <div class="play-btn-big">▶</div>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span>⚡</span> Instant TeraBox Downloader
+    </div>
+    <h1>Stream & Download<br /><span>TeraBox Videos</span></h1>
+    <p>Paste any TeraBox share link. Watch instantly or download at full speed.</p>
+
+    <div class="input-wrap">
+      <div class="input-inner">
+        <div class="input-icon">🔗</div>
+        <input
+          type="url"
+          id="linkInput"
+          placeholder="https://terabox.com/s/..."
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <button class="paste-btn" onclick="pasteLink()">Paste</button>
+        <button class="fetch-btn" onclick="fetchLink()" id="fetchBtn">Fetch →</button>
       </div>
     </div>
 
-    <div class="controls-row">
-      <div>
-        <div class="quality-label">Quality</div>
-        <div class="quality-pills" id="qualityPills"></div>
+    <div class="features">
+      <div class="feature-item"><span>✓</span> No login needed</div>
+      <div class="feature-item"><span>✓</span> Fast streaming</div>
+      <div class="feature-item"><span>✓</span> Direct download</div>
+      <div class="feature-item"><span>✓</span> All TeraBox links</div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <div id="result"></div>
+
+  <!-- HOW TO USE -->
+  <section class="how-section" id="how">
+    <div class="section-title">How it works</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">STEP 01</div>
+        <h3>Copy the link</h3>
+        <p>Open your TeraBox share link and copy it from the browser or app.</p>
       </div>
-      <div class="stream-live">
-        <div class="dot"></div>
-        <span id="streamTypeLabel">Live Stream</span>
+      <div class="step-card">
+        <div class="step-num">STEP 02</div>
+        <h3>Paste & Fetch</h3>
+        <p>Paste the link above and click Fetch. We'll extract the file info instantly.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 03</div>
+        <h3>Watch or Download</h3>
+        <p>Stream directly in the browser or download the file at full speed.</p>
       </div>
     </div>
+  </section>
 
-    <div class="actions">
-      <a class="btn btn-stream" id="streamBtn" href="#" target="_blank" rel="noopener">▶ Open Stream</a>
-      <a class="btn btn-download" id="downloadBtn" href="#" target="_blank" rel="noopener">⬇ Download</a>
-    </div>
-
-
-
-  </div>
-
-  <div class="features">
-    <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Fast HLS Stream</div><div class="feat-desc">360p, 480p &amp; 720p quality</div></div>
-    <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">Mobile Ready</div><div class="feat-desc">iOS Safari &amp; Android</div></div>
-    <div class="feat"><div class="feat-icon">⬇️</div><div class="feat-title">Direct Download</div><div class="feat-desc">Original quality file</div></div>
-    <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title">No Login Needed</div><div class="feat-desc">Any public share link</div></div>
-  </div>
-
+  <!-- FOOTER -->
   <footer>
-    <p>Made with ❤️ by <a href="#">ZTERA</a> &nbsp;·&nbsp; Free TeraBox streaming tool</p>
+    <p>TeraFetch — Fast TeraBox video downloader. Not affiliated with TeraBox.</p>
   </footer>
 
-</div>
+  <!-- TOAST -->
+  <div id="toast"></div>
 
-<script>
-const API="https://render-proxy.mazashwaas.workers.dev/api/terabox?url=";
-const Q_LABELS={'360p':'360p','480p':'480p','720p':'720p HD'};
-let hlsInstance=null;
+  <script>
+    // ── CONFIG ──────────────────────────────────────────
+    const API_BASE = "https://terabox-api-3zp5.onrender.com";
 
-/* All known TeraBox alternate domains → terabox.com */
-const TERA_DOMAINS=[
-  '1024terabox.com','teraboxapp.com','nephobox.com','mirrobox.com',
-  '4funbox.co','4funbox.com','momerybox.com','tibibox.com',
-  'terashare.com','terabox.fun','www.terabox.com','terafileshare.com',
-  'teraboxurl.com','teraboxlink.com','terasharefile.com'
-];
+    // ── AUTO LINK CONVERTER ──────────────────────────────
+    // All known TeraBox domains → normalize to terabox.com
+    const TERABOX_DOMAINS = [
+      "terabox.com", "www.terabox.com",
+      "terabox.app", "www.terabox.app",
+      "teraboxlink.com", "www.teraboxlink.com",
+      "1024terabox.com", "www.1024terabox.com",
+      "teraboxshare.com", "www.teraboxshare.com",
+      "freeterabox.com", "www.freeterabox.com",
+      "4funbox.co", "www.4funbox.co",
+      "tibibox.com", "www.tibibox.com",
+      "terafileshare.com", "www.terafileshare.com",
+      "dm.terabox.app",
+    ];
 
-function cleanLink(s){return s.split(" ")[0].trim();}
-
-function convertDomain(url){
-  try{
-    const u=new URL(url.startsWith('http')?url:'https://'+url);
-    const matched=TERA_DOMAINS.find(d=>u.hostname===d||u.hostname==='www.'+d);
-    if(matched){
-      u.hostname='www.terabox.com';
-      return{converted:true,original:url,result:u.toString()};
+    function normalizeTeraboxUrl(input) {
+      input = input.trim();
+      if (!input.startsWith("http")) input = "https://" + input;
+      try {
+        const u = new URL(input);
+        const host = u.hostname.toLowerCase();
+        const isTerabox = TERABOX_DOMAINS.some(d => host === d || host.endsWith("." + d));
+        if (!isTerabox) return null; // not a terabox link
+        // Keep path & query, just normalize domain
+        u.hostname = "www.terabox.com";
+        u.protocol = "https:";
+        return u.toString();
+      } catch {
+        return null;
+      }
     }
-  }catch(e){}
-  return{converted:false,result:url};
-}
 
-function showConvertToast(original,converted){
-  let t=document.getElementById('convertToast');
-  if(!t){
-    t=document.createElement('div');
-    t.id='convertToast';t.className='convert-toast';
-    t.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg><span id="convertMsg"></span>`;
-    document.getElementById('errorBox').after(t);
-  }
-  document.getElementById('convertMsg').textContent=`Domain auto-converted → terabox.com`;
-  t.style.display='flex';
-}
+    // Auto-convert on input change
+    document.getElementById("linkInput").addEventListener("input", function () {
+      const val = this.value.trim();
+      if (!val) return;
+      const normalized = normalizeTeraboxUrl(val);
+      if (normalized && normalized !== val) {
+        this.value = normalized;
+        this.style.color = "var(--success)";
+        setTimeout(() => { this.style.color = ""; }, 1200);
+        showToast("Link converted ✓", "success");
+      }
+    });
 
-function hideConvertToast(){
-  const t=document.getElementById('convertToast');
-  if(t)t.style.display='none';
-}
-
-function isValid(s){return /terabox|terashare|1024tera|nephobox|mirrobox|4funbox|momerybox|tibibox|teraboxapp/i.test(s);}
-function formatBytes(b){if(!b)return'—';const u=['B','KB','MB','GB'];let i=0,v=b;while(v>=1024&&i<u.length-1){v/=1024;i++;}return v.toFixed(2)+' '+u[i];}
-
-async function toggleClipboard(){
-  const inp=document.getElementById('userInput');
-  const btn=document.getElementById('clipBtn');
-  if(inp.value){inp.value='';btn.innerHTML='📋 Paste';return;}
-  try{const t=await navigator.clipboard.readText();inp.value=cleanLink(t);btn.innerHTML='✕ Clear';}
-  catch{alert('Clipboard blocked! Paste manually.');}
-}
-
-document.getElementById('userInput').addEventListener('input',function(){
-  document.getElementById('clipBtn').innerHTML=this.value?'✕ Clear':'📋 Paste';
-});
-
-function showError(msg){
-  const b=document.getElementById('errorBox');
-  document.getElementById('errorMsg').textContent=msg;
-  b.style.display='flex';
-}
-function hideError(){document.getElementById('errorBox').style.display='none';}
-function setLoading(v){
-  document.getElementById('loading').style.display=v?'flex':'none';
-  document.getElementById('loadBtn').disabled=v;
-}
-
-async function fetchData(){
-  const raw=document.getElementById('userInput').value;
-  if(!raw.trim()){showError('Please enter a TeraBox share link.');return;}
-  const link=cleanLink(raw);
-  if(!isValid(link)){showError('Please enter a valid TeraBox link.');return;}
-
-  hideError();
-  hideConvertToast();
-  document.getElementById('result').style.display='none';
-  setLoading(true);
-
-  /* Auto domain convert */
-  const cvt=convertDomain(link);
-  const finalLink=cvt.result;
-  if(cvt.converted){
-    document.getElementById('userInput').value=finalLink;
-    showConvertToast(link,finalLink);
-  }
-
-  try{
-    const res=await fetch(API+encodeURIComponent(finalLink));
-    const json=await res.json();
-    setLoading(false);
-
-    /* Shape A: render-proxy { success, data.list[] } */
-    if(json.success&&json.data&&json.data.list&&json.data.list.length){
-      renderShapeA(json.data.list[0]);
+    // ── PASTE ────────────────────────────────────────────
+    async function pasteLink() {
+      try {
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById("linkInput");
+        input.value = text;
+        // Trigger conversion
+        input.dispatchEvent(new Event("input"));
+        input.focus();
+      } catch {
+        showToast("Paste manually using Ctrl+V", "error");
+      }
     }
-    /* Shape B: ansh-apis { data[] } */
-    else if(json.data&&Array.isArray(json.data)&&json.data.length){
-      renderShapeB(json.data[0]);
+
+    // ── ENTER KEY ────────────────────────────────────────
+    document.getElementById("linkInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") fetchLink();
+    });
+
+    // ── FETCH ────────────────────────────────────────────
+    async function fetchLink() {
+      let url = document.getElementById("linkInput").value.trim();
+      const btn = document.getElementById("fetchBtn");
+      const result = document.getElementById("result");
+
+      if (!url) {
+        showToast("Please paste a TeraBox link first", "error");
+        document.getElementById("linkInput").focus();
+        return;
+      }
+
+      // Auto-convert before fetching
+      const converted = normalizeTeraboxUrl(url);
+      if (!converted) {
+        showToast("Invalid or unsupported link", "error");
+        return;
+      }
+      url = converted;
+      document.getElementById("linkInput").value = url;
+
+      // Loading state
+      btn.disabled = true;
+      btn.textContent = "Fetching…";
+      result.innerHTML = `
+        <div class="loader">
+          <div class="spinner"></div>
+          <p>Fetching file info…</p>
+        </div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+
+        if (data.status !== "success") {
+          showError(data.error || data.message || "Could not fetch file. Check your link.");
+          return;
+        }
+
+        renderResult(data);
+      } catch (err) {
+        showError("Network error — API may be starting up, try again in a moment.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Fetch →";
+      }
     }
-    else{
-      throw new Error(json.error||json.message||'No video found. Check the link.');
+
+    // ── RENDER RESULT ────────────────────────────────────
+    // Store data globally for player access
+    let _currentData = null;
+
+    function renderResult(data) {
+      _currentData = data;
+      const result = document.getElementById("result");
+      const isVideo = data.is_video;
+      const directUrl = data.download || null;  // dlink — fast, no proxy
+      const proxyStream = `${API_BASE}/download?url=${encodeURIComponent(data.url)}`;
+      const proxyDownload = `${API_BASE}/download?url=${encodeURIComponent(data.url)}&dl=1`;
+      const thumb = data.thumbs?.url3 || data.thumbs?.url2 || data.thumbs?.url1 || null;
+      const ext = (data.filename || "").split(".").pop().toUpperCase();
+      // Try direct dlink first (fastest), fallback to proxy
+      const streamSrc = directUrl || proxyStream;
+
+      result.innerHTML = `
+        <div class="result-card">
+          ${isVideo ? `
+          <div class="player-wrap" id="playerWrap">
+            <video
+              id="videoPlayer"
+              controls
+              preload="none"
+              playsinline
+              webkit-playsinline
+              style="width:100%;height:100%;display:block;background:#000;position:relative;z-index:2;"
+            ></video>
+            ${thumb ? `<div class="thumb-bg" id="thumbBg" style="background-image:url('${escHtml(thumb)}');"></div>` : ""}
+            <div class="player-placeholder" id="placeholder" style="cursor:pointer;">
+              <div class="play-icon-big">&#9654;</div>
+              <p style="font-size:14px;">Tap to play</p>
+              ${data.size ? `<p style="font-size:12px;opacity:0.5;">${data.size}</p>` : ""}
+            </div>
+          </div>
+          ` : `
+          <div style="padding:32px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:8px;">&#128196;</div>
+            <p style="color:var(--muted);font-size:14px;">File ready to download</p>
+          </div>
+          `}
+          <div class="file-info">
+            <div class="file-meta">
+              <h2>${escHtml(data.filename || "Unknown file")}</h2>
+              <div class="file-tags">
+                ${data.size ? `<span class="tag tag-size">${data.size}</span>` : ""}
+                ${ext ? `<span class="tag tag-type">${ext}</span>` : ""}
+                <span class="tag tag-time">&#9889; ${data.response_time}</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            ${isVideo ? `<button class="btn btn-primary" id="playBtnMain">&#9654; &nbsp;Play Video</button>` : ""}
+            <a class="btn btn-secondary" href="${escHtml(proxyDownload)}" target="_blank" rel="noopener">&#11015; &nbsp;Download</a>
+            <button class="btn btn-ghost" onclick="copyToClipboard('${escHtml(proxyStream)}')">&#128279; &nbsp;Copy Stream Link</button>
+          </div>
+          <div class="copy-section">
+            <input class="copy-input" readonly value="${escHtml(proxyStream)}" id="streamInput" />
+            <button class="copy-btn" id="copyBtn" onclick="copyInput()">Copy</button>
+          </div>
+        </div>`;
+
+      if (isVideo) {
+        const player = document.getElementById("videoPlayer");
+        const placeholder = document.getElementById("placeholder");
+        const thumbBg = document.getElementById("thumbBg");
+
+        // Try direct dlink first (no proxy = faster)
+        // If it fails (cookie error), fallback to proxy
+        let usingDirect = !!directUrl;
+        player.src = streamSrc;
+
+        function hidePlaceholder() {
+          if (placeholder) placeholder.style.display = "none";
+          if (thumbBg) thumbBg.style.display = "none";
+        }
+
+        function doPlay() {
+          hidePlaceholder();
+          player.play().catch(e => console.warn("play() failed:", e.message));
+        }
+
+        placeholder?.addEventListener("click", doPlay);
+        document.getElementById("playBtnMain")?.addEventListener("click", doPlay);
+
+        player.addEventListener("playing", hidePlaceholder);
+
+        // If direct URL fails, auto-fallback to proxy
+        player.addEventListener("error", () => {
+          if (usingDirect && proxyStream) {
+            console.log("Direct URL failed, switching to proxy...");
+            usingDirect = false;
+            player.src = proxyStream;
+            hidePlaceholder();
+            player.load();
+            player.play().catch(() => {});
+          } else {
+            if (placeholder) {
+              placeholder.style.display = "flex";
+              placeholder.innerHTML = `<p style="color:var(--danger);font-size:14px;padding:20px;text-align:center;">Could not load video.<br/>Try Download button instead.</p>`;
+            }
+          }
+        });
+      }
+
+      result.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }catch(err){
-    setLoading(false);
-    showError(err.message||'Failed to fetch! Check connection or link.');
-  }
-}
 
-function renderShapeA(item){
-  document.getElementById('fileName').textContent=item.name||'video.mp4';
-  document.getElementById('fileSize').textContent=item.size_formatted||formatBytes(item.size);
-  if(item.duration){const d=document.getElementById('durationPill');d.textContent=item.duration;d.style.display='';}
-  if(item.thumbnail){document.getElementById('thumbImg').src=item.thumbnail;document.getElementById('thumbOverlay').classList.remove('hidden');}
-  document.getElementById('downloadBtn').href=item.normal_dlink||'#';
-  document.getElementById('streamBtn').href=item.stream_url||item.normal_dlink||'#';
-  buildQualityPills(item);
-  showResult();
-}
+    // ── ERROR ────────────────────────────────────────────
+    function showError(msg) {
+      document.getElementById("result").innerHTML = `
+        <div class="error-box">
+          <div class="error-icon">⚠️</div>
+          <div>
+            <h3>Could not fetch file</h3>
+            <p>${escHtml(msg)}</p>
+          </div>
+        </div>`;
+    }
 
-function renderShapeB(item){
-  document.getElementById('fileName').textContent=item.file_name||'video.mp4';
-  document.getElementById('fileSize').textContent=item.file_size||'—';
-  document.getElementById('durationPill').style.display='none';
-  document.getElementById('thumbOverlay').classList.add('hidden');
-  const streamUrl=item.stream_final_url||item.stream_url||'';
-  const dlUrl=item.download_url||streamUrl;
-  document.getElementById('downloadBtn').href=dlUrl;
-  document.getElementById('streamBtn').href=streamUrl;
-  const c=document.getElementById('qualityPills');c.innerHTML='';
-  const p=document.createElement('button');p.className='q-pill active';p.textContent=item.extension||'Original';
-  p.onclick=()=>loadStream(streamUrl,'auto');c.appendChild(p);
-  document.getElementById('streamTypeLabel').textContent='Direct Stream';
-  loadStream(streamUrl,'auto');
-  showResult();
-}
+    // ── COPY ─────────────────────────────────────────────
+    function copyInput() {
+      const val = document.getElementById("streamInput")?.value;
+      if (!val) return;
+      copyToClipboard(val);
+      const btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied!";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+    }
 
-function buildQualityPills(item){
-  const c=document.getElementById('qualityPills');c.innerHTML='';
-  const fast=item.fast_stream_url||{};
-  const list=[];
-  Object.entries(fast).forEach(([q,url])=>list.push({label:Q_LABELS[q]||q,url,type:'hls',key:q}));
-  list.sort((a,b)=>({'720p':0,'480p':1,'360p':2}[a.key]??9)-({'720p':0,'480p':1,'360p':2}[b.key]??9));
-  if(item.stream_url)list.push({label:'Original',url:item.stream_url,type:'mp4',key:'orig'});
-  const defKey=item.quality||(list[0]&&list[0].key);
-  list.forEach(q=>{
-    const p=document.createElement('button');
-    p.className='q-pill'+(q.key===defKey?' active':'');
-    p.textContent=q.label;
-    p.onclick=()=>{document.querySelectorAll('.q-pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');loadStream(q.url,q.type);};
-    c.appendChild(p);
-  });
-  const def=list.find(q=>q.key===defKey)||list[0];
-  if(def)loadStream(def.url,def.type);
-}
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Link copied!", "success");
+      } catch {
+        showToast("Could not copy — try manually", "error");
+      }
+    }
 
-function loadStream(url,type){
-  const v=document.getElementById('player');
-  const lbl=document.getElementById('streamTypeLabel');
-  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
-  v.pause();v.removeAttribute('src');v.load();
-  document.getElementById('thumbOverlay').classList.remove('hidden');
-  const isHls=type==='hls'||url.includes('.m3u8');
-  if(isHls){
-    if(Hls.isSupported()){
-      hlsInstance=new Hls({enableWorker:true,backBufferLength:30});
-      hlsInstance.loadSource(url);hlsInstance.attachMedia(v);
-      lbl.textContent='HLS Adaptive Stream';
-    }else if(v.canPlayType('application/vnd.apple.mpegurl')){
-      v.src=url;lbl.textContent='Native HLS (iOS)';
-    }else{v.src=url;lbl.textContent='Direct Stream';}
-  }else{v.src=url;lbl.textContent='Direct MP4 Stream';}
-}
+    // ── TOAST ────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = "") {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = "show" + (type === "success" ? " success" : type === "error" ? " error-t" : "");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.className = ""; }, 3000);
+    }
 
-function startPlay(){
-  document.getElementById('thumbOverlay').classList.add('hidden');
-  document.getElementById('player').play().catch(()=>{});
-}
-
-function showResult(){
-  const r=document.getElementById('result');r.style.display='block';
-  setTimeout(()=>{r.scrollIntoView({behavior:'smooth',block:'start'});},120);
-}
-
-
-
-document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchData();});
-
-(function(){const p=new URLSearchParams(location.search);const u=p.get('url');if(u){document.getElementById('userInput').value=u;fetchData();}})();
-</script>
-
+    // ── UTILS ────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
 </body>
 </html>
